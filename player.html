@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reproductor de recs HBR2 (motor patcheado)</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='7' fill='%230b0e14' stroke='%234f8cff' stroke-width='1.5'/><circle cx='8' cy='8' r='2' fill='%23dfe7f5'/></svg>">
+<link rel="stylesheet" href="vendor/fontello.css">
+<link rel="stylesheet" href="vendor/game.css">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700" rel="stylesheet">
+<style>
+  /* ---- CSS del merger: mismo layout que el reproductor oficial de HaxBall,
+         re-tinteado con la paleta oscura del merger ---- */
+  :root {
+    --bg:#0f1420; --panel:#1a2233; --panel2:#202a40; --line:#2c3a55;
+    --txt:#dbe4f4; --mut:#8ba0c0; --acc:#4f8cff; --ok:#2ecc71; --bad:#ff5a5a;
+  }
+  html, body { height:100%; overflow:hidden; }
+  body { background:#0b0e14; color:var(--txt);
+    font-family:"Open Sans",Segoe UI,Roboto,Arial,sans-serif; }
+  #container { height:100%; position:relative; z-index:0; }
+  /* z-index:0 hace que #container sea contexto de apilamiento: el canvas del campo
+     (z-index:-1 dentro de .game-state-view) queda DENTRO de ese contexto y se pinta
+     por encima del fondo oscuro del body. Sin esto, el bitmap se dibuja pero queda
+     tapado por el background del body y la pantalla sale en negro. */
+
+  /* --- barra de marcador superior (igual que la oficial, oscura) --- */
+  .game-state-view .bar-container { z-index:1; }
+  .game-state-view .bar { background:#151b29; border:1px solid var(--line); border-top:none;
+    border-radius:0 0 5px 5px; }
+  .game-state-view .bar .score { color:var(--txt); }
+  .game-state-view .bar .teamicon.blue { background:#4f8cff; }
+  .game-state-view .bar .teamicon.red  { background:#ff5a5a; }
+  .game-state-view .bar [data-hook=timer] { color:#b9c7dd; }
+  .game-state-view .fps-limit-fix { display:none; }
+
+  /* --- botones superiores (sonido / menú / ajustes) --- */
+  .game-view>.buttons { background:#151b29; border-bottom-left-radius:5px;
+    border-bottom:1px solid var(--line); border-left:1px solid var(--line); }
+  .game-view>.buttons button { background:var(--panel2); border:1px solid var(--line); color:var(--txt); }
+  .game-view>.buttons button:hover { background:#2a3550; border-color:var(--acc); }
+  .game-view>.buttons button:active { background:#151b29; }
+  .game-view>.buttons button:disabled { background:#161b26; border-color:var(--line); }
+  .sound-button-container .sound-slider { background:var(--panel); border:1px solid var(--line); }
+
+  /* --- barra de control de reproducción (inferior) --- */
+  .replay-controls-view { background:#0d1119; border-top:1px solid var(--line); color:var(--txt); }
+  .replay-controls-view button { background:var(--panel2); border:1px solid var(--line); color:var(--txt); }
+  .replay-controls-view button:hover { background:#2a3550; border-color:var(--acc); }
+  .replay-controls-view button:active { background:#151b29; }
+  .replay-controls-view button:disabled { background:#161b26; border-color:var(--line); }
+  .replay-controls-view [data-hook=spd] { color:var(--txt); min-width:40px; }
+  .replay-controls-view [data-hook=time] { color:var(--mut); font-variant-numeric:tabular-nums; min-width:50px; }
+  .replay-controls-view .timebar .barbg { background:#1c2434; }
+  .replay-controls-view .timebar .bar { background:var(--acc); }
+  .replay-controls-view .timebar .timetooltip { background:#0d1119; border:1px solid var(--line); color:var(--txt); }
+  .replay-controls-view .timebar .marker { background:rgba(139,160,192,.6); }
+  .replay-controls-view .timebar .marker.k1 { background:#2b58b8; }
+  .replay-controls-view .timebar .marker.k2 { background:#ff5a5a; }
+
+  /* --- lobby / diálogos --- */
+  .dialog, .room-view>.container { background:var(--panel); border:1px solid var(--line); }
+  .dialog>h1, .room-view>.container>h1 { border-bottom-color:var(--acc); color:var(--txt); }
+  .dialog button, .room-view>.container button { background:var(--panel2); border:1px solid var(--line); color:var(--txt); }
+  .dialog button:hover, .room-view>.container button:hover { background:#2a3550; border-color:var(--acc); }
+  .dialog button:active, .room-view>.container button:active { background:#151b29; }
+  .dialog button:disabled, .room-view>.container button:disabled { background:#161b26; border-color:var(--line); }
+  .dialog input:not([type=range]), .room-view>.container input:not([type=range]) { background:#0f1420; border-color:var(--line); color:var(--txt); }
+  .dialog input:focus:not([type=range]), .room-view>.container input:focus:not([type=range]) { border-color:var(--acc); }
+  .dialog .label-input, .room-view>.container .label-input { background:var(--panel2); }
+  .dialog select, .room-view>.container select { background:#0f1420; border-color:var(--line); color:var(--txt); }
+  .dialog select:hover:not(:disabled), .room-view>.container select:hover:not(:disabled) { border-color:var(--acc); }
+  .room-view button { background:var(--panel2); border:1px solid var(--line); color:var(--txt); }
+  .room-view button:hover { background:#2a3550; border-color:var(--acc); }
+  .room-view button:active { background:#151b29; }
+  .room-view button:disabled { background:#161b26; border-color:var(--line); }
+  .room-view>.container>.teams .player-list-view .list { background:#0f1420; }
+  .room-view .player-list-item:hover { background:#222c40; }
+  .room-view>.container>.teams .player-list-view.t-red button[data-hook=join-btn] { color:#ff8686; }
+  .room-view>.container>.teams .player-list-view.t-blue button[data-hook=join-btn] { color:#b7b7ff; }
+
+  /* --- popups / overlays --- */
+  .game-view>[data-hook=popups] { background:rgba(11,14,20,.65); }
+  .game-state-view.restricted { background:#151b29; }
+  .chatbox-view-contents { background:rgba(15,20,32,.88); }
+  .chatbox-view-contents>.input input[type=text] { background:#0f1420; color:var(--txt); }
+  .chatbox-view-contents>.input input[type=text]:focus { border:1px solid var(--acc); padding:0 7px; }
+  .chatbox-view-contents>.input button { background:var(--panel2); border:1px solid var(--line); color:var(--txt); }
+  .chatbox-view-contents>.input button:hover { background:#2a3550; border-color:var(--acc); }
+
+  /* --- utilidades del merger --- */
+  #err { position:fixed; left:16px; right:16px; top:16px; z-index:99;
+    background:#2a1216; border:1px solid var(--bad); color:#ffd7d7;
+    border-radius:8px; padding:12px 16px; font-size:13px; white-space:pre-wrap; }
+  #pick { display:none; position:fixed; inset:0; z-index:95; align-items:center;
+    justify-content:center; flex-direction:column; padding:24px; text-align:center; }
+  #pick h2 { margin:0 0 8px; }
+  #pick p { color:var(--mut); font-size:13px; margin:6px 0 20px; max-width:640px; line-height:1.5; }
+  #pick input[type=file] { color:var(--txt); }
+  a.back { position:fixed; left:12px; top:12px; z-index:50; color:var(--acc);
+    font-size:12px; text-decoration:none; background:rgba(11,14,20,.6); padding:4px 8px;
+    border-radius:4px; border:1px solid var(--line); }
+  a.back:hover { color:#8ab4ff; border-color:var(--acc); }
+</style>
+</head>
+<body>
+<div id="pick">
+  <h2>Reproductor de recs .hbr2</h2>
+  <p>Este reproductor usa el motor patcheado (<code>game-min_patched.js</code>) que entiende las
+     acciones de junción <code>Mb</code> que emite el merger. El reproductor estándar de HaxBall
+     <b>no</b> puede reproducir un merged con junción de estado (los jugadores se congelan).
+     <br><br>Arrastra aquí un <b>.hbr2</b> (por ejemplo el merged descargado) o elígelo:</p>
+  <input type="file" id="fileInput" accept=".hbr2">
+</div>
+<div id="err" style="display:none"></div>
+<div id="container"></div>
+<a class="back" href="./">← Volver al merger</a>
+
+<script src="vendor/pako-jszip.min.js"></script>
+<script src="game-min_patched.js"></script>
+<script src="db.js"></script>
+<script>
+(function () {
+  'use strict';
+  var B = window._pxy_B;
+  if (!B || !window._pxy_$b) {
+    document.getElementById('err').textContent = 'El motor patcheado no se cargó (window._pxy_B ausente). Haz Ctrl+F5 y vuelve a entrar.';
+    document.getElementById('err').style.display = 'block';
+    return;
+  }
+
+  function err(msg) {
+    var el = document.getElementById('err');
+    el.textContent = 'ERROR: ' + msg;
+    el.style.display = 'block';
+    document.getElementById('pick').style.display = 'flex';
+  }
+
+  window.addEventListener('error', function (e) {
+    if (e && e.message) err('excepción no controlada: ' + e.message);
+  });
+
+  // --- Sonido (igual que el reproductor oficial) ---
+  // El motor patcheado deja m.Ra como stub mudo cuando corre a nivel superior.
+  // Aquí cargamos el res.dat oficial (zip con sounds/*) y sustituimos m.Ra por el
+  // gestor de sonido real (jc): el público (crowd) lo dispara el propio motor en
+  // cada frame vía m.Ra.tk.zt(); los goles se disparan aquí al cruzar el marcador.
+  function loadSound() {
+    if (!window._pxy_jc || !window._pxy_setRa || !window.JSZip) return;
+    fetch('res.dat').then(function (r) {
+      if (!r.ok) throw new Error('res.dat ' + r.status);
+      return r.arrayBuffer();
+    }).then(function (buf) {
+      var ra = new window._pxy_jc(new JSZip(buf));
+      window._pxy_ra = ra;
+      var resume = function () { try { ra.sm(); } catch (e) {} };
+      window.addEventListener('click', resume, { once: true, capture: true });
+      window.addEventListener('keydown', resume, { once: true, capture: true });
+      // El motor llama m.Ra.tk.zt(a) en cada render; tk solo existe tras decodificar
+      // crowd.ogg. Activar m.Ra antes de que Zo resuelva haría crashear el render.
+      return ra.Zo.then(function () { window._pxy_setRa(ra); });
+    }).catch(function () {});
+  }
+  loadSound();
+
+  function playBytes(bytes) {
+    if (!bytes || bytes.length < 12) throw new Error('archivo demasiado corto');
+    var dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    if (dv.getUint32(0, false) !== 0x48425232) throw new Error('no es un .hbr2 (magic HBR2 no encontrado)');
+    var ver = dv.getUint32(4, false);
+    if (ver !== 3) throw new Error('versión de replay no soportada: ' + ver + ' (se espera 3)');
+    document.getElementById('pick').style.display = 'none';
+    // Mismo wiring que Bb.Xo(), pero exponiendo la rep y la vista para ?seek= y depuración.
+    var rep = new window._pxy_$b(new Uint8Array(bytes), new window._pxy_va, 3);
+    var view = new window._pxy_vc(rep);
+    window._pxy_rep = rep;
+    window._pxy_view = view;
+    window._pxy_lastUb = -1;
+    // Si el render falla en algún frame, mostrarlo en pantalla en lugar de quedarse en negro
+    // (el _pxyV() del motor se traga el error y deja el canvas sin pintar).
+    view._pxyV = function () {
+      try {
+        view.l.A(rep);
+        // Gol: el engine marca en rep.pl cada gol ({Dj: fracción, kind: 1 azul / 2 rojo}).
+        // Al cruzar su instante de reproducción, suena goal.wav como en el juego.
+        var ra = window._pxy_ra, ub = rep.Ub, last = window._pxy_lastUb;
+        if (ra && ra.qp && ub > last) {
+          var goals = rep.pl || [], total = rep.uh * rep.Bf, i;
+          for (i = 0; i < goals.length; i++) {
+            var t = goals[i].Dj * total;
+            if (t > last && t <= ub) { try { ra.md(ra.qp); } catch (e) {} }
+          }
+        }
+        window._pxy_lastUb = ub;
+      }
+      catch (e) { if (!window._pxy_vf) { window._pxy_vf = true; err('fallo de render (frame ' + rep.Y + '): ' + (e && e.message || e) + (e && e.stack ? '\n' + e.stack.split('\n').slice(0, 3).join('\n') : '')); } }
+    };
+    view.te.oe = function () { view.la(); };
+    window._pxy_C.Oa(view.l.f);
+    seekOnLoad();
+  }
+
+  function seekOnLoad() {
+    var f = q.get('seek');
+    if (!f || !window._pxy_rep) return;
+    var rep = window._pxy_rep, n = parseInt(f, 10);
+    if (isNaN(n) || n < 0) return;
+    n = Math.min(n, rep.Bf);
+    rep.Ub = n * rep.uh; rep.hi = 0;
+    rep.A();
+    try { window._pxy_view.l.A(rep); } catch (e) {}
+    window._pxy_lastUb = rep.Ub;
+    var m = document.getElementById('seekmark');
+    if (!m) { m = document.createElement('div'); m.id = 'seekmark'; m.style.cssText = 'position:fixed;left:12px;top:48px;z-index:60;background:#12203a;border:1px solid #4f8cff;border-radius:6px;padding:6px 10px;font:12px Consolas,monospace;'; document.body.appendChild(m); }
+    var b = rep.T.M && rep.T.M.va.H ? rep.T.M.va.H[0] : null;
+    var pz = rep.T.ma(2722);
+    m.textContent = 'seek=' + n + ' Y=' + rep.Y +
+      ' ball=' + (b ? b.a.x.toFixed(2) + ',' + b.a.y.toFixed(2) : 'null') +
+      ' p2722=' + (pz && pz.I ? pz.I.a.x.toFixed(2) + ',' + pz.I.a.y.toFixed(2) : 'spec') +
+      ' M=' + (rep.T.M ? 'y' : 'n');
+  }
+
+  function loadFile(file) {
+    var rd = new FileReader();
+    rd.onload = function () { try { playBytes(new Uint8Array(rd.result)); } catch (e) { err(e.message || e); } };
+    rd.onerror = function () { err('no se pudo leer el archivo'); };
+    rd.readAsArrayBuffer(file);
+  }
+
+  var q = new URLSearchParams(window.location.search);
+  var job = q.get('job');
+  var back = document.querySelector('a.back');
+  if (back && job) back.href = '?job=' + encodeURIComponent(job);
+  var fi = document.getElementById('fileInput');
+  if (job) {
+    // En la versión estática el merged se lee de IndexedDB (no hay /api/download/:id).
+    window.HBRDB.getJob(job).then(function (j) {
+      if (!j || !j.merged) throw new Error('el trabajo no existe en este navegador (se borró el historial local)');
+      playBytes(j.merged);
+    }).catch(function (e) { err(e.message || e); });
+  } else {
+    document.getElementById('pick').style.display = 'flex';
+  }
+  fi.addEventListener('change', function () {
+    if (fi.files && fi.files[0]) loadFile(fi.files[0]);
+    fi.value = '';
+  });
+  window.addEventListener('dragover', function (e) { e.preventDefault(); });
+  window.addEventListener('drop', function (e) {
+    e.preventDefault();
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+  });
+})();
+</script>
+</body>
+</html>

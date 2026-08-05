@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fusión de recs HBR2</title>
+<style>
+  :root { --bg:#0f1420; --panel:#1a2233; --panel2:#202a40; --line:#2c3a55; --txt:#dbe4f4; --mut:#8ba0c0; --acc:#4f8cff; --ok:#2ecc71; --bad:#ff5a5a; --warn:#f1c40f; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--txt); }
+  .wrap { max-width:960px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  .sub { color:var(--mut); font-size:13px; margin-bottom:20px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px; margin-bottom:16px; }
+  #dropzone { border:2px dashed var(--line); border-radius:10px; padding:34px 20px; text-align:center; color:var(--mut); cursor:pointer; transition:background .15s,border-color .15s; }
+  #dropzone.over, #dropzone:hover { border-color:var(--acc); background:var(--panel2); color:var(--txt); }
+  #dropzone b { color:var(--acc); }
+  table { width:100%; border-collapse:collapse; margin-top:6px; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); font-size:13px; }
+  th { color:var(--mut); font-weight:600; }
+  td.slot { white-space:nowrap; color:var(--acc); font-weight:600; }
+  td.name { word-break:break-all; }
+  .btn { background:var(--panel2); color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:9px 14px; font-size:14px; cursor:pointer; }
+  .btn:hover:not(:disabled) { border-color:var(--acc); }
+  .btn:disabled { opacity:.45; cursor:not-allowed; }
+  .btn.primary { background:var(--acc); border-color:var(--acc); color:#fff; font-weight:600; }
+  .btn.small { padding:4px 9px; font-size:12px; }
+  .actions { display:flex; gap:10px; align-items:center; margin-top:14px; flex-wrap:wrap; }
+  .spacer { flex:1; }
+  pre#log { background:#0a0f1a; border:1px solid var(--line); border-radius:8px; padding:12px; font:12px/1.5 Consolas,'Cascadia Mono',monospace; max-height:340px; overflow:auto; white-space:pre-wrap; word-break:break-all; }
+  #status { min-height:20px; font-size:14px; margin-top:6px; }
+  #status.running { color:var(--warn); }
+  #status.ok { color:var(--ok); font-weight:600; }
+  #status.failed, #status.error { color:var(--bad); font-weight:600; }
+  #download .dl-link { color:var(--ok); font-weight:700; text-decoration:none; border:1px solid var(--ok); border-radius:8px; padding:10px 16px; display:block; margin-top:10px; text-align:center; }
+  #download .dl-link:hover { background:rgba(46,204,113,.12); }
+  #download .dl-play { color:#4f8cff; font-weight:700; text-decoration:none; border:1px solid #4f8cff; border-radius:8px; padding:10px 16px; display:block; margin-top:10px; text-align:center; }
+  #download .dl-play:hover { background:rgba(79,140,255,.12); }
+  .hint { color:var(--mut); font-size:12px; margin-top:8px; }
+  #spinner { display:none; width:16px; height:16px; border:2px solid var(--line); border-top-color:var(--warn); border-radius:50%; animation:spin .8s linear infinite; }
+  #spinner.on { display:inline-block; vertical-align:-3px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .fade { animation:fade .25s; }
+  @keyframes fade { from { opacity:.2; } to { opacity:1; } }
+  .warnbar { background:rgba(241,196,15,.1); border:1px solid var(--warn); border-radius:8px; padding:10px 14px; font-size:13px; margin-bottom:16px; display:none; }
+  .warnbar b { color:var(--warn); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Fusión de recs HBR2</h1>
+  <div class="sub">Une dos recs de Haxball (<code>.hbr2</code>) en una sola. <br><b>Modo Estándar</b> <em>(recomendado)</em> = unión solo con acciones vanilla, lista para reproducir en <b>haxball.com</b>. <br><b>Modo Exacto</b> = paridad byte-exacta con <code>Mb</code>, solo motor patcheado. <br><em>Orden: Rec 1 (inicio) + Rec 2 (continuación)</em>.<br><br>Todo se procesa <b>íntegramente en tu navegador</b> (Web Worker + IndexedDB): los archivos no se suben a ningún servidor y los trabajos quedan guardados localmente (se restauran con el enlace <code>?job=…</code>).</div>
+
+  <div class="warnbar" id="filewarn"><b>Estás abriendo este archivo con doble clic (protocolo <code>file://</code>).</b> Chrome bloquea los Web Workers en <code>file://</code>, así que la fusión no puede arrancar. Ábrelo a través de un servidor local (por ejemplo <code>npx serve</code>, la extensión "Live Server" de VS Code o <code>python -m http.server</code> dentro de esta carpeta) o súbelo a GitHub Pages, que es para lo que está preparado.</div>
+
+  <div class="card">
+    <div id="dropzone">
+      <div>Arrastra aquí hasta <b>2 archivos .hbr2</b> o haz clic para elegirlos.</div>
+      <div class="hint">El primero será la Rec 1 (inicio), el segundo la Rec 2 (continuación). Puedes intercambiarlos después. Si ya hay 2 recs, una nueva las sustituye en orden rotativo (Rec 1, luego Rec 2).</div>
+    </div>
+    <input type="file" id="fileInput" accept=".hbr2" multiple hidden>
+    <input type="file" id="fileInput1" accept=".hbr2" hidden>
+    <input type="file" id="fileInput2" accept=".hbr2" hidden>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead><tr><th>Posición</th><th>Archivo</th><th>Tamaño</th><th></th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="slot">Rec 1 · inicio</td>
+          <td class="name" id="n1">(ninguna)</td>
+          <td id="s1"></td>
+          <td><button class="btn small" id="a1">Añadir</button> <button class="btn small" id="c1">Quitar</button></td>
+        </tr>
+        <tr>
+          <td class="slot">Rec 2 · continuación</td>
+          <td class="name" id="n2">(ninguna)</td>
+          <td id="s2"></td>
+          <td><button class="btn small" id="a2">Añadir</button> <button class="btn small" id="c2">Quitar</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="actions">
+      <button class="btn" id="swap">Intercambiar orden</button>
+      <div class="spacer"></div>
+      <button class="btn primary" id="go">Fusionar</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="actions">
+      <b>Modo de fusión</b>
+      <label style="display:inline-flex;gap:6px;align-items:center;font-size:13px;cursor:pointer"><input type="radio" name="mode" value="standard" checked> Estándar (haxball.com)</label>
+      <label style="display:inline-flex;gap:6px;align-items:center;font-size:13px;cursor:pointer"><input type="radio" name="mode" value="exact"> Exacto (motor patcheado)</label>
+    </div>
+    <div class="hint"><b>Estándar:</b> los cuerpos de la 2ª parte arrancan en formación de kickoff (igual que el merger original) y los mueve el motor oficial de haxball.com. <br><b>Exacto</b>: restaura cuerpos exactos con la acción <code>Mb</code>, que solo entiende el reproductor patcheado de esta app.</div>
+  </div>
+
+  <div class="card">
+    <div class="actions">
+      <b>Proceso</b>
+      <span id="spinner"></span>
+      <div class="spacer"></div>
+      <button class="btn small" id="clearLog">Limpiar log</button>
+    </div>
+    <pre id="log"></pre>
+    <div id="status"></div>
+    <div id="download"></div>
+  </div>
+</div>
+
+<script src="db.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var dz = $('dropzone'), fi = $('fileInput'), fi1 = $('fileInput1'), fi2 = $('fileInput2');
+  var slots = { 1: null, 2: null };
+  var overwriteNext = 1;
+  var jobId = null;
+  var seenLines = 0;
+  var worker = null;
+  var currentBufs = null;
+
+  function fmt(n) {
+    if (n == null) return '';
+    if (n < 1024) return n + ' B';
+    if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+    return (n / 1048576).toFixed(2) + ' MB';
+  }
+
+  function isHbr2(name) { return /\.hbr2$/i.test(name || ''); }
+
+  function setSlot(k, file) {
+    slots[k] = file || null;
+    $('n' + k).textContent = file ? file.name : '(ninguna)';
+    $('n' + k).style.color = file ? '' : 'var(--mut)';
+    $('s' + k).textContent = file ? fmt(file.size) : '';
+    refreshGo();
+  }
+
+  function refreshGo() {
+    $('go').disabled = !(slots[1] && slots[2]);
+  }
+
+  function addFiles(list) {
+    var files = Array.prototype.slice.call(list || []);
+    files.forEach(function (f) {
+      if (!isHbr2(f.name)) {
+        line('AVISO: "' + f.name + '" no parece un .hbr2, se ignora.');
+        return;
+      }
+      var k;
+      if (!slots[1]) k = 1;
+      else if (!slots[2]) k = 2;
+      else {
+        k = overwriteNext;
+        overwriteNext = overwriteNext === 1 ? 2 : 1;
+        line('AVISO: ya hay 2 recs; "' + f.name + '" sustituye a la Rec ' + k + ' (rotativo).');
+      }
+      setSlot(k, f);
+      line('Seleccionada Rec ' + k + ': ' + f.name + ' (' + fmt(f.size) + ')');
+    });
+  }
+
+  function addToSlot(k, f) {
+    if (!isHbr2(f.name)) {
+      line('AVISO: "' + f.name + '" no parece un .hbr2, se ignora.');
+      return;
+    }
+    setSlot(k, f);
+    line('Seleccionada Rec ' + k + ': ' + f.name + ' (' + fmt(f.size) + ')');
+  }
+
+  dz.addEventListener('click', function () { fi.click(); });
+  fi.addEventListener('change', function () { addFiles(fi.files); fi.value = ''; });
+  fi1.addEventListener('change', function () { if (fi1.files[0]) addToSlot(1, fi1.files[0]); fi1.value = ''; });
+  fi2.addEventListener('change', function () { if (fi2.files[0]) addToSlot(2, fi2.files[0]); fi2.value = ''; });
+  ['dragenter', 'dragover'].forEach(function (ev) { dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function (ev) { dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.remove('over'); }); });
+  dz.addEventListener('drop', function (e) { addFiles(e.dataTransfer.files); });
+
+  $('a1').addEventListener('click', function () { fi1.click(); });
+  $('a2').addEventListener('click', function () { fi2.click(); });
+  $('c1').addEventListener('click', function () { setSlot(1, null); });
+  $('c2').addEventListener('click', function () { setSlot(2, null); });
+  $('swap').addEventListener('click', function () {
+    var a = slots[1], b = slots[2];
+    setSlot(1, b); setSlot(2, a);
+  });
+  $('clearLog').addEventListener('click', function () { $('log').textContent = ''; $('status').textContent = ''; $('download').innerHTML = ''; seenLines = 0; });
+
+  function line(t) {
+    var el = $('log');
+    el.textContent += (el.textContent ? '\n' : '') + t;
+    el.scrollTop = el.scrollHeight;
+  }
+  function status(msg, cls) {
+    var el = $('status');
+    el.textContent = msg || '';
+    el.className = cls || '';
+  }
+
+  function readBuf(file) {
+    return new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () { resolve(r.result); };
+      r.onerror = reject;
+      r.readAsArrayBuffer(file);
+    });
+  }
+
+  function stem(n) { return String(n || 'rec').replace(/\.hbr2$/i, '').replace(/[\\/:*?"<>|]+/g, '_'); }
+  function makeId() { return 'j' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+  function setRunning(on) {
+    $('spinner').classList.toggle('on', on);
+    $('go').disabled = on;
+    $('swap').disabled = on;
+  }
+
+  function showResult(job) {
+    var dl = $('download');
+    if (!job.merged) return;
+    var blob = new Blob([job.merged], { type: 'application/octet-stream' });
+    var url = URL.createObjectURL(blob);
+    dl.innerHTML = '<a class="dl-link" href="' + url + '" download="' + job.mergedName + '">Descargar ' + job.mergedName + '</a>' +
+      (job.structural ? '' : '<a class="dl-play" href="player.html?job=' + encodeURIComponent(job.id) + '">Reproducir (motor parcheado)</a>');
+  }
+
+  $('go').addEventListener('click', function () {
+    var f1 = slots[1], f2 = slots[2];
+    if (!f1 || !f2) return;
+    setRunning(true);
+    $('log').textContent = '';
+    $('download').innerHTML = '';
+    seenLines = 0;
+    status('Fusionando... (verificación en marcha)', 'running');
+    var mode = document.querySelector('input[name="mode"]:checked');
+    var w;
+    try {
+      w = new Worker('merge-worker.js');
+    } catch (e) {
+      setRunning(false);
+      status('ERROR: no se pudo iniciar el worker de fusión (' + e.message + ')', 'error');
+      line('ERROR: ' + e.message);
+      if (window.location.protocol === 'file:') {
+        line('');
+        line('Estás en file://: Chrome bloquea los Web Workers al abrir páginas con doble clic.');
+        line('Sirve esta carpeta por HTTP para que funcione (por ejemplo: npx serve, Live Server, python -m http.server)');
+        line('o súbela a GitHub Pages.');
+      }
+      return;
+    }
+    worker = w;
+    w.onmessage = function (e) {
+      var m = e.data;
+      if (m.t === 'line') { line(m.text); }
+      else if (m.t === 'warn') { line('WARN: ' + m.text); }
+      else if (m.t === 'done') {
+        w.terminate();
+        if (worker === w) worker = null;
+        setRunning(false);
+        doneFromWorker(m);
+      }
+    };
+    w.onerror = function (e) {
+      w.terminate();
+      if (worker === w) worker = null;
+      setRunning(false);
+      status('ERROR: el worker de fusión falló (' + (e.message || 'desconocido') + ')', 'error');
+    };
+    Promise.all([readBuf(f1), readBuf(f2)]).then(function (bufs) {
+      if (!worker) return;
+      currentBufs = bufs;
+      w.postMessage({ id: makeId(), f1: bufs[0], f2: bufs[1], mode: mode ? mode.value : 'standard' });
+    }).catch(function (e) {
+      setRunning(false);
+      status('Error: ' + e.message, 'error');
+      line('ERROR: ' + (e && e.stack ? e.stack : e));
+    });
+  });
+
+  function doneFromWorker(m) {
+    if (m.ok && m.result && m.result.verifyOk) {
+      var st = m.result;
+      jobId = makeId();
+      history.replaceState(null, '', '?job=' + encodeURIComponent(jobId));
+      var job = {
+        id: jobId,
+        createdAt: Date.now(),
+        mode: st.structural ? 'standard' : 'exact',
+        name1: slots[1].name, data1: currentBufs[0],
+        name2: slots[2].name, data2: currentBufs[1],
+        merged: st.merged,
+        mergedName: stem(slots[1].name) + ' + ' + stem(slots[2].name) + '.hbr2',
+        verifyOk: st.verifyOk, structural: st.structural, mbEmitted: st.mbEmitted,
+        framesChecked: st.framesChecked, dur1: st.dur1, dur2: st.dur2,
+        mergedDur: st.mergedDur, mergedSize: st.mergedSize, mergedDecSize: st.mergedDecSize,
+        junctionBytes: st.junctionBytes,
+        lines: $('log').textContent.split('\n'),
+      };
+      showResult(job);
+      if (st.structural) {
+        status('VERIFICACIÓN SUPERADA (estructural + física viva) — listo para descargar y reproducir en haxball.com.', 'ok');
+        line('RESULTADO: verificada estructuralmente — descarga disponible.');
+      } else {
+        status('VERIFICACIÓN SUPERADA (paridad byte-exacta) — listo para descargar.', 'ok');
+        line('RESULTADO: verificada — descarga disponible.');
+      }
+      window.HBRDB.saveJob(job).catch(function (e) {
+        line('AVISO: no se pudo guardar el trabajo en el navegador (' + e.message + ').');
+      });
+    } else if (m.ok === false) {
+      status('ERROR: ' + (m.error || 'el merger falló.'), 'error');
+      line('ERROR: la verificación falló o el merger terminó con error.');
+    } else {
+      status('VERIFICACIÓN FALLIDA — el merge no cumple la verificación. No se entrega archivo.', 'failed');
+    }
+  }
+
+  setSlot(1, null); setSlot(2, null);
+
+  if (window.location.protocol === 'file:') {
+    var fw = $('filewarn');
+    if (fw) fw.style.display = 'block';
+  }
+
+  // --- Restauración de estado: al volver desde el reproductor (?job=) se leen de
+  // IndexedDB las 2 recs originales + el merged + el log guardados en este navegador. ---
+  function restoreJob(id) {
+    jobId = id;
+    window.HBRDB.getJob(id).then(function (j) {
+      if (!j) throw new Error('el trabajo ya no existe en este navegador (se borró el historial local)');
+      var modeEl = document.querySelector('input[name="mode"][value="' + (j.mode || 'standard') + '"]');
+      if (modeEl) modeEl.checked = true;
+      if (j.data1) setSlot(1, new File([j.data1], j.name1)); else line('AVISO: no se pudo restaurar la Rec 1.');
+      if (j.data2) setSlot(2, new File([j.data2], j.name2)); else line('AVISO: no se pudo restaurar la Rec 2.');
+      (j.lines || []).forEach(function (l) { line(l); });
+      if (j.verifyOk) {
+        showResult(j);
+        status(j.structural
+          ? 'VERIFICACIÓN SUPERADA (estructural + física viva) — listo para descargar y reproducir en haxball.com.'
+          : 'VERIFICACIÓN SUPERADA (paridad byte-exacta) — listo para descargar.', 'ok');
+      } else {
+        status('VERIFICACIÓN FALLIDA — el merge no cumple la verificación. No se entrega archivo.', 'failed');
+      }
+    }).then(function () {
+      line('Estado restaurado del trabajo ' + id + ': Rec 1 + Rec 2 cargadas y resultado fusionado disponible.');
+    }).catch(function (e) {
+      line('AVISO: no se pudo restaurar el estado anterior (' + e.message + ').');
+    });
+  }
+
+  var q = new URLSearchParams(window.location.search);
+  var rjob = q.get('job');
+  if (rjob) restoreJob(rjob);
+})();
+</script>
+</body>
+</html>

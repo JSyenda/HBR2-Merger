@@ -87,5 +87,24 @@
     });
   }
 
-  w.HBRDB = { saveJob: saveJob, getJob: getJob, deleteJob: deleteJob };
+  function lastJob() {
+    return open().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        const t = db.transaction(STORE, 'readonly');
+        const q = t.objectStore(STORE).getAll();
+        q.onsuccess = function () {
+          const jobs = q.result || [];
+          let best = null;
+          jobs.forEach(function (j) {
+            if (!best || (j.createdAt || 0) > (best.createdAt || 0)) best = j;
+          });
+          resolve(best || null);
+        };
+        q.onerror = function () { reject(q.error); };
+        t.onerror = function () { reject(t.error); };
+      });
+    });
+  }
+
+  w.HBRDB = { saveJob: saveJob, getJob: getJob, deleteJob: deleteJob, lastJob: lastJob };
 })(window);

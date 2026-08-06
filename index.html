@@ -3,14 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fusión de recs HBR2</title>
+<title>HBR2 Merger</title>
 <style>
   :root { --bg:#0f1420; --panel:#1a2233; --panel2:#202a40; --line:#2c3a55; --txt:#dbe4f4; --mut:#8ba0c0; --acc:#4f8cff; --ok:#2ecc71; --bad:#ff5a5a; --warn:#f1c40f; }
   * { box-sizing:border-box; }
   body { margin:0; font-family:Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--txt); }
   .wrap { max-width:960px; margin:0 auto; padding:24px 16px 64px; }
-  h1 { font-size:22px; margin:0 0 4px; }
-  .sub { color:var(--mut); font-size:13px; margin-bottom:20px; }
+  /* --- nav --- */
+  [hidden] { display:none !important; }
+  header.nav { position:sticky; top:0; z-index:40; background:#111725; border-bottom:1px solid var(--line); }
+  header.nav .wrap { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:10px 16px; min-height:58px; }
+  .brand { display:inline-flex; align-items:center; gap:10px; color:var(--txt); text-decoration:none; font-weight:700; font-size:17px; letter-spacing:.2px; }
+  .brand:hover { color:var(--acc); }
+  .brand svg { display:block; }
+  .nav-links { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .nav-job { display:inline-flex; align-items:center; gap:6px; color:var(--mut); font-size:13px; text-decoration:none; padding:6px 8px; border-radius:6px; }
+  .nav-job:hover { color:var(--acc); background:rgba(79,140,255,.08); }
+  .nav-job svg { width:14px; height:14px; }
+  .discord { display:inline-flex; align-items:center; gap:8px; background:#5865F2; color:#fff; font-weight:600; font-size:14px; text-decoration:none; padding:9px 16px; border-radius:8px; white-space:nowrap; }
+  .discord:hover { background:#4752c4; }
+  .discord svg { width:18px; height:18px; }
+  .card > .actions:first-child { margin-top:0; }
+  /* --- intro / nota local --- */
+  .intro { font-size:13px; }
+  .intro code, .localnote code { color:var(--acc); }
+  .localnote { background:rgba(139,160,192,.08); border:1px solid rgba(139,160,192,.28); color:#b9c7dd; border-radius:10px; padding:12px 16px; font-size:13px; margin-bottom:16px; }
+  .localnote b { color:var(--mut); }
+  /* --- footer --- */
+  footer.foot { margin-top:24px; background:#111725; border-top:1px solid var(--line); }
+  footer.foot .wrap { padding:20px 16px 28px; }
+  .foot-links { display:flex; flex-wrap:wrap; justify-content:center; gap:8px 18px; }
+  .foot-links a { display:inline-flex; align-items:center; gap:7px; color:var(--mut); font-size:13px; text-decoration:none; }
+  .foot-links a:hover { color:var(--acc); }
+  .foot-links svg { width:17px; height:17px; }
   .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px; margin-bottom:16px; }
   #dropzone { border:2px dashed var(--line); border-radius:10px; padding:34px 20px; text-align:center; color:var(--mut); cursor:pointer; transition:background .15s,border-color .15s; }
   #dropzone.over, #dropzone:hover { border-color:var(--acc); background:var(--panel2); color:var(--txt); }
@@ -26,7 +51,10 @@
   .btn.primary { background:var(--acc); border-color:var(--acc); color:#fff; font-weight:600; }
   .btn.small { padding:4px 9px; font-size:12px; }
   .actions { display:flex; gap:10px; align-items:center; margin-top:14px; flex-wrap:wrap; }
+  .actions.modes label { display:inline-flex; gap:6px; align-items:center; cursor:pointer; font-size:13px; }
   .spacer { flex:1; }
+  .tablewrap { overflow-x:auto; }
+  td:last-child { white-space:nowrap; }
   pre#log { background:#0a0f1a; border:1px solid var(--line); border-radius:8px; padding:12px; font:12px/1.5 Consolas,'Cascadia Mono',monospace; max-height:340px; overflow:auto; white-space:pre-wrap; word-break:break-all; }
   #status { min-height:20px; font-size:14px; margin-top:6px; }
   #status.running { color:var(--warn); }
@@ -44,12 +72,57 @@
   @keyframes fade { from { opacity:.2; } to { opacity:1; } }
   .warnbar { background:rgba(241,196,15,.1); border:1px solid var(--warn); border-radius:8px; padding:10px 14px; font-size:13px; margin-bottom:16px; display:none; }
   .warnbar b { color:var(--warn); }
+  /* --- responsive / móvil --- */
+  @media (max-width:640px) {
+    body { overflow-x:hidden; }
+    .wrap { padding:16px 12px 48px; }
+    .card { padding:14px; }
+    #dropzone { padding:24px 14px; }
+    header.nav .wrap { flex-direction:column; align-items:stretch; gap:8px; min-height:0; }
+    .nav-links { width:100%; justify-content:space-between; }
+    .nav-links .discord { flex:1; justify-content:center; }
+    .actions { gap:8px; }
+    .actions.modes { flex-direction:column; align-items:flex-start; }
+    .spacer { display:none; }
+    .actions .btn { flex:1 1 auto; }
+    th, td { padding:7px 6px; }
+    .localnote, .warnbar { padding:10px 12px; }
+    footer.foot .wrap { padding:16px 14px 24px; }
+    .foot-links { gap:8px 16px; }
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Fusión de recs HBR2</h1>
-  <div class="sub">Une dos recs de Haxball (<code>.hbr2</code>) en una sola. <br><b>Modo Estándar</b> <em>(recomendado)</em> = unión solo con acciones vanilla, lista para reproducir en <b>haxball.com</b>. <br><b>Modo Exacto</b> = paridad byte-exacta con <code>Mb</code>, solo motor patcheado. <br><em>Orden: Rec 1 (inicio) + Rec 2 (continuación)</em>.<br><br>Todo se procesa <b>íntegramente en tu navegador</b> (Web Worker + IndexedDB): los archivos no se suben a ningún servidor y los trabajos quedan guardados localmente (se restauran con el enlace <code>?job=…</code>).</div>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="./">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true">
+        <circle cx="9" cy="12" r="6" stroke="#4f8cff" stroke-width="2"/>
+        <circle cx="15" cy="12" r="6" stroke="#ff5a5a" stroke-width="2"/>
+      </svg>
+      HBR2 Merger
+    </a>
+    <nav class="nav-links">
+      <a class="nav-job" id="navLastJob" href="#" hidden title="Restaurar el último trabajo (?job=…)">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+        Último trabajo
+      </a>
+      <a class="discord" href="https://discord.gg/r4TFnVPEXw" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
+        Discord
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="card intro">
+    Une dos recs de Haxball (<code>.hbr2</code>) en una sola. <br><b>Modo Estándar</b> <em>(recomendado)</em> = unión solo con acciones vanilla, lista para reproducir en <b>haxball.com</b>. <br><b>Modo Exacto</b> = paridad byte-exacta con <code>Mb</code>, suele funcionar solo con el motor parcheado (Disponible en esta web tras fusionar 2 recs con este modo). <br><em>Orden: Rec 1 (inicio) + Rec 2 (continuación)</em>.
+  </div>
+
+  <div class="localnote">
+    Todo se procesa <b>íntegramente en tu navegador</b> (Web Worker + IndexedDB): los archivos no se suben a ningún servidor y los trabajos quedan guardados localmente (se restauran con el enlace <code>?job=…</code>).
+  </div>
 
   <div class="warnbar" id="filewarn"><b>Estás abriendo este archivo con doble clic (protocolo <code>file://</code>).</b> Chrome bloquea los Web Workers en <code>file://</code>, así que la fusión no puede arrancar. Ábrelo a través de un servidor local (por ejemplo <code>npx serve</code>, la extensión "Live Server" de VS Code o <code>python -m http.server</code> dentro de esta carpeta) o súbelo a GitHub Pages, que es para lo que está preparado.</div>
 
@@ -64,6 +137,7 @@
   </div>
 
   <div class="card">
+    <div class="tablewrap">
     <table>
       <thead><tr><th>Posición</th><th>Archivo</th><th>Tamaño</th><th></th></tr></thead>
       <tbody>
@@ -81,6 +155,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
     <div class="actions">
       <button class="btn" id="swap">Intercambiar orden</button>
       <div class="spacer"></div>
@@ -89,26 +164,38 @@
   </div>
 
   <div class="card">
-    <div class="actions">
+    <div class="actions modes">
       <b>Modo de fusión</b>
-      <label style="display:inline-flex;gap:6px;align-items:center;font-size:13px;cursor:pointer"><input type="radio" name="mode" value="standard" checked> Estándar (haxball.com)</label>
-      <label style="display:inline-flex;gap:6px;align-items:center;font-size:13px;cursor:pointer"><input type="radio" name="mode" value="exact"> Exacto (motor patcheado)</label>
+      <label><input type="radio" name="mode" value="standard" checked> Estándar (haxball.com)</label>
+      <label><input type="radio" name="mode" value="exact"> Exacto (motor patcheado)</label>
     </div>
-    <div class="hint"><b>Estándar:</b> los cuerpos de la 2ª parte arrancan en formación de kickoff (igual que el merger original) y los mueve el motor oficial de haxball.com. <br><b>Exacto</b>: restaura cuerpos exactos con la acción <code>Mb</code>, que solo entiende el reproductor patcheado de esta app.</div>
+    <div class="hint"><b>Estándar</b> (recomendado, para cualquier HaxBall): la 2ª parte arranca en la formación de saque inicial y se reproduce donde quieras. <br><b>Exacto</b> (solo esta web): mantiene a los jugadores en la posición exacta en que quedaron; solo se ve con el reproductor de esta app.</div>
   </div>
 
   <div class="card">
     <div class="actions">
       <b>Proceso</b>
       <span id="spinner"></span>
-      <div class="spacer"></div>
-      <button class="btn small" id="clearLog">Limpiar log</button>
     </div>
     <pre id="log"></pre>
     <div id="status"></div>
     <div id="download"></div>
   </div>
-</div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="https://discord.gg/r4TFnVPEXw" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>Discord</a>
+      <a class="foot-job" id="footLastJob" href="#" hidden title="Restaurar el último trabajo (?job=…)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>Último trabajo</a>
+      <a href="https://ffl-theta.vercel.app/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>FFL</a>
+      <a href="https://www.youtube.com/@FFLHax" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>YouTube</a>
+      <a href="https://www.twitch.tv/futsalfusionleaguehax" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>Twitch</a>
+      <a href="https://kick.com/futsalfusionleaguehax" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M1.333 0h8v5.333H12V2.667h2.667V0h8v8H20v2.667h-2.667v2.666H20V16h2.667v8h-8v-2.667H12v-2.666H9.333V24h-8Z"/></svg>Kick</a>
+      <a href="https://www.tiktok.com/@futsalfusionleaguett" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>TikTok</a>
+    </div>
+  </div>
+</footer>
 
 <script src="db.js"></script>
 <script>
@@ -190,8 +277,6 @@
     var a = slots[1], b = slots[2];
     setSlot(1, b); setSlot(2, a);
   });
-  $('clearLog').addEventListener('click', function () { $('log').textContent = ''; $('status').textContent = ''; $('download').innerHTML = ''; seenLines = 0; });
-
   function line(t) {
     var el = $('log');
     el.textContent += (el.textContent ? '\n' : '') + t;
@@ -288,6 +373,7 @@
       var st = m.result;
       jobId = makeId();
       history.replaceState(null, '', '?job=' + encodeURIComponent(jobId));
+      setLastJobLink('?job=' + encodeURIComponent(jobId));
       var job = {
         id: jobId,
         createdAt: Date.now(),
@@ -354,9 +440,25 @@
     });
   }
 
+  function setLastJobLink(url) {
+    ['navLastJob', 'footLastJob'].forEach(function (id) {
+      var a = document.getElementById(id);
+      if (!a) return;
+      a.href = url;
+      a.hidden = false;
+    });
+  }
+
   var q = new URLSearchParams(window.location.search);
   var rjob = q.get('job');
-  if (rjob) restoreJob(rjob);
+  if (rjob) {
+    restoreJob(rjob);
+    setLastJobLink('?job=' + encodeURIComponent(rjob));
+  } else {
+    window.HBRDB.lastJob().then(function (j) {
+      if (j) setLastJobLink('?job=' + encodeURIComponent(j.id));
+    }).catch(function () {});
+  }
 })();
 </script>
 </body>

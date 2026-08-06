@@ -230,7 +230,7 @@
   var q = new URLSearchParams(window.location.search);
   var job = q.get('job');
   var back = document.querySelector('a.back');
-  if (back && job) back.href = '?job=' + encodeURIComponent(job);
+  if (back && job) back.href = './?job=' + encodeURIComponent(job);
   var fi = document.getElementById('fileInput');
   if (job) {
     // En la versión estática el merged se lee de IndexedDB (no hay /api/download/:id).

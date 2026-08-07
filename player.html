@@ -101,6 +101,46 @@
     font-size:12px; text-decoration:none; background:rgba(11,14,20,.6); padding:4px 8px;
     border-radius:4px; border:1px solid var(--line); }
   a.back:hover { color:#8ab4ff; border-color:var(--acc); }
+
+  /* --- responsive / móvil --- */
+  /* 100dvh evita que la barra inferior quede cortada bajo la UI del navegador móvil. */
+  @supports (height:100dvh) { .game-view { height:100dvh; } }
+  /* Hasta 820px la barra de marcador (445px fijos) chocaría con los botones de la
+     esquina superior derecha: se compacta y se pega a la izquierda (estilo HUD móvil). */
+  @media (max-width:820px) {
+    .game-state-view .bar-container { justify-content:flex-start; }
+    .game-state-view .bar { font-size:15px; padding:4px 8px; }
+    .game-state-view .bar>.scoreboard { margin-right:24px; }
+    .game-state-view .bar>.scoreboard .score { width:24px; }
+    .game-state-view .bar>.scoreboard .teamicon { width:17px; height:17px; border-radius:4px; }
+    .game-timer-view>.overtime { display:none; }
+    .game-timer-view>.digit { width:11px; }
+    a.back { top:40px; }
+  }
+  @media (max-width:640px) {
+    .game-view>.buttons { padding:4px; }
+    .game-view>.buttons>:not(:last-child) { margin-right:3px; }
+    .game-view>.buttons button { padding-left:7px; padding-right:7px; }
+
+    .replay-controls-view { padding-left:2px; padding-right:2px; }
+    .replay-controls-view>:not(:last-child) { margin-right:3px; }
+    .replay-controls-view button { padding:5px 9px; }
+    .replay-controls-view [data-hook=spd] { min-width:24px; font-size:12px; }
+    .replay-controls-view [data-hook=time] { min-width:34px; font-size:12px; }
+    .replay-controls-view .timebar { min-width:60px; }
+  }
+  @media (max-width:360px) {
+    /* Pantallas muy pequeñas: se oculta el marcador superior (el tiempo también se
+       ve en la barra inferior) y se compacta todo para que quepa sin overflow. */
+    .game-timer-view { display:none; }
+    .game-view>.buttons button { padding-left:5px; padding-right:5px; }
+    .game-view>.buttons>:not(:last-child) { margin-right:2px; }
+    .replay-controls-view button { padding:5px 7px; }
+    .replay-controls-view>:not(:last-child) { margin-right:2px; }
+    .replay-controls-view .timebar { min-width:50px; }
+  }
+  .replay-controls-view button, .game-view>.buttons button, .game-state-view .timebar,
+  #fileInput, a.back { touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
 </style>
 </head>
 <body>

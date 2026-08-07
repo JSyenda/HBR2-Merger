@@ -64,6 +64,10 @@
   .btn:disabled { opacity:.45; cursor:not-allowed; }
   .btn.primary { background:var(--acc); border-color:var(--acc); color:#fff; font-weight:600; }
   .btn.small { padding:4px 9px; font-size:12px; }
+  .icon-info { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; flex:none; background:var(--panel2); color:var(--mut); border:1px solid var(--line); border-radius:8px; cursor:pointer; padding:0; }
+  .icon-info:hover, .icon-info[aria-expanded="true"] { color:var(--acc); border-color:var(--acc); background:#2a3550; }
+  .icon-info svg { width:18px; height:18px; }
+  .callout { margin-top:10px; background:rgba(79,140,255,.08); border:1px solid rgba(79,140,255,.3); color:#b9c7dd; border-radius:10px; padding:11px 14px; font-size:13px; line-height:1.55; }
   .actions { display:flex; gap:10px; align-items:center; margin-top:14px; flex-wrap:wrap; }
   .actions.modes label { display:inline-flex; gap:6px; align-items:center; cursor:pointer; font-size:13px; }
   .spacer { flex:1; }
@@ -186,9 +190,13 @@
     </div>
     <div class="actions">
       <button class="btn" id="swap" data-i18n="swapBtn">Intercambiar orden</button>
+      <button type="button" class="icon-info" id="swapInfo" data-i18n-title="swapInfoTitle" aria-expanded="false" aria-controls="swapInfoBox" aria-label="info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+      </button>
       <div class="spacer"></div>
       <button class="btn primary" id="go" data-i18n="mergeBtn">Fusionar</button>
     </div>
+    <div class="callout" id="swapInfoBox" data-i18n="swapInfoText" hidden>Si la fusión falla o la rec resultante no se reproduce, prueba a intercambiar el orden de las grabaciones.</div>
   </div>
 
   <div class="card">
@@ -309,6 +317,20 @@
   $('swap').addEventListener('click', function () {
     var a = slots[1], b = slots[2];
     setSlot(1, b); setSlot(2, a);
+  });
+  $('swapInfo').addEventListener('click', function () {
+    var box = $('swapInfoBox');
+    var show = box.hidden;
+    box.hidden = !show;
+    this.setAttribute('aria-expanded', show ? 'true' : 'false');
+  });
+  document.addEventListener('click', function (e) {
+    var box = $('swapInfoBox'), btn = $('swapInfo');
+    if (box.hidden || !btn) return;
+    if (e.target !== btn && !btn.contains(e.target) && !box.contains(e.target)) {
+      box.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+    }
   });
   function line(t) {
     var el = $('log');

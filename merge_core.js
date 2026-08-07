@@ -43,6 +43,20 @@
     for (const [pabs, t] of all) { writeVarint(pabs - prev, out); out.push(t); prev = pabs; }
     return new Uint8Array(out);
   }
+  // WOM a partir de posiciones absolutas ya desplazadas (para recortes).
+  function buildWomSingle(entries) {
+    const out = []; out.push((entries.length >> 8) & 0xff, entries.length & 0xff);
+    let prev = 0;
+    for (const [pabs, t] of entries) { writeVarint(pabs - prev, out); out.push(t); prev = pabs; }
+    return new Uint8Array(out);
+  }
+  function varintBytes(v) {
+    v >>>= 0; const out = [];
+    while (v >= 0x80) { out.push((v & 0x7f) | 0x80); v >>>= 7; }
+    out.push(v & 0x7f);
+    return new Uint8Array(out);
+  }
+  function varintLen(v) { v >>>= 0; let n = 1; while (v >= 0x80) { v >>>= 7; n++; } return n; }
   function concatBytes(arrs) { let len = 0; for (const a of arrs) len += a.length; const out = new Uint8Array(len); let o = 0; for (const a of arrs) { out.set(a, o); o += a.length; } return out; }
   function bufEq(a, b) { if (a.length !== b.length) return false; for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false; return true; }
 
@@ -375,5 +389,88 @@
     };
   }
 
-  return { mergeFiles };
+  return { mergeFiles, trimReplay };
+
+  // ---------- recorte de replay ----------
+  // Recorta un .hbr2 al intervalo de frames [start, end) (frames de replay, 30 fps).
+  // Estrategia: se conserva el snapshot de sala del frame 0 (el formato solo permite
+  // serializar la sala al inicio) y se filtran las acciones y los marcadores WOM del
+  // tramo fuera del intervalo, recomprimiendo los deltas entre las que quedan. El
+  // resultado es un .hbr2 válido cuya duración es (end - start).
+  //
+  // Para la fusión esto es correcto en ambos lados:
+  //  - Rec 2: el merger descarta el snapshot de Rec 2 y engancha su flujo de acciones
+  //    al estado de junción (S2); la verificación lockstep reproduce el recorte igual
+  //    que el merged, porque ambos parten del mismo estado INIT de Rec 2.
+  //  - Rec 1: el merged conserva el snapshot de Rec 1 y las acciones recortadas; S1 se
+  //    calcula avanzando el recorte hasta su (nueva) duración, que coincide con el
+  //    estado de la Rec 1 original en el instante de corte.
+  // Nota visual: recortar el INICIO de Rec 1 deja la sala inicial sin acciones durante
+  // ese tramo (limitación del formato); recortar el INICIO de Rec 2 es transparente.
+  function trimReplay(b, start, end) {
+    if (!b || b.length < 12) throw new Error('archivo demasiado corto para recortar');
+    const dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
+    if (dv.getUint32(0, false) !== 0x48425232) throw new Error('no es un .hbr2');
+    if (dv.getUint32(4, false) !== 3) throw new Error('versión de replay no soportada (se espera 3)');
+    const dur = dv.getUint32(8, false);
+    start = Math.max(0, Math.floor(start | 0));
+    end = Math.min(dur, Math.ceil(end | 0));
+    if (end <= start) throw new Error('recorte inválido: el final debe ser mayor que el inicio');
+    if (start === 0 && end === dur) return b;
+
+    const dec = pako.inflateRaw(b.subarray(12));
+    const wom = parseWom(dec);
+
+    // Leer todas las acciones del original (pos absoluta + bytes serializados).
+    const rep = makeRep(b);
+    const acts = [];
+    let prevAbsOrig = 0;
+    let totalAct = 0;
+    while (rep.ug) {
+      const abs = rep.vg;
+      const act = rep.ug;
+      const delta = abs - prevAbsOrig;
+      const ww = A.ka(64);
+      ww.pb(delta);
+      ww.Xb(act.P);
+      p.Cj(act, ww);
+      const rec = ww.Wb();
+      totalAct += rec.length;
+      acts.push({ abs: abs, rec: rec, dlen: varintLen(delta) });
+      prevAbsOrig = abs;
+      rep.dm();
+    }
+    const snapshotLen = rep.Sc.a - totalAct;
+    if (snapshotLen < 0 || wom.end + snapshotLen > dec.length) {
+      throw new Error('no se pudo localizar el snapshot de sala');
+    }
+
+    // Filtrar acciones del tramo y recomprimir deltas.
+    const newRecs = [];
+    let prevAbs = start;
+    for (const a of acts) {
+      if (a.abs < start) continue;
+      if (a.abs >= end) break;
+      const nd = a.abs - prevAbs;
+      prevAbs = a.abs;
+      const body = a.rec.subarray(a.dlen); // [varint P][payload]
+      newRecs.push(concatBytes([varintBytes(nd), body]));
+    }
+
+    // Marcadores WOM del tramo, desplazados a la nueva línea de tiempo.
+    let c = 0;
+    const markers = [];
+    for (const [d, t] of wom.entries) { c += d; if (c >= start && c < end) markers.push([c - start, t]); }
+
+    const snapshot = dec.subarray(wom.end, wom.end + snapshotLen);
+    const newDec = concatBytes([buildWomSingle(markers), snapshot].concat(newRecs));
+    const compressed = pako.deflateRaw(newDec);
+    const out = new Uint8Array(12 + compressed.length);
+    const dv2 = new DataView(out.buffer);
+    dv2.setUint32(0, 0x48425232, false);
+    dv2.setUint32(4, 3, false);
+    dv2.setUint32(8, end - start, false);
+    out.set(compressed, 12);
+    return out;
+  }
 });

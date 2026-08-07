@@ -106,5 +106,30 @@
     });
   }
 
-  w.HBRDB = { saveJob: saveJob, getJob: getJob, deleteJob: deleteJob, lastJob: lastJob };
+  // Listado ligero de trabajos (sin data1/data2/merged: solo metadatos), del más
+  // reciente al más antiguo.
+  function listJobs() {
+    return open().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        const t = db.transaction(STORE, 'readonly');
+        const q = t.objectStore(STORE).getAll();
+        q.onsuccess = function () {
+          const jobs = q.result || [];
+          jobs.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+          resolve(jobs.map(function (j) {
+            return {
+              id: j.id, createdAt: j.createdAt, mode: j.mode,
+              name1: j.name1, name2: j.name2, mergedName: j.mergedName,
+              mergedSize: j.mergedSize, dur1: j.dur1, dur2: j.dur2, mergedDur: j.mergedDur,
+              verifyOk: j.verifyOk, structural: j.structural, label: j.label,
+            };
+          }));
+        };
+        q.onerror = function () { reject(q.error); };
+        t.onerror = function () { reject(t.error); };
+      });
+    });
+  }
+
+  w.HBRDB = { saveJob: saveJob, getJob: getJob, deleteJob: deleteJob, lastJob: lastJob, listJobs: listJobs };
 })(window);

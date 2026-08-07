@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title data-i18n="pTitle">Reproductor de recs HBR2 (motor patcheado)</title>
 <link rel="icon" href="favicon.ico">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="vendor/fontello.css">
 <link rel="stylesheet" href="vendor/game.css">
 <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700" rel="stylesheet">
@@ -112,6 +113,22 @@
     border-radius:4px; border:1px solid var(--line); }
   a.back:hover { color:#8ab4ff; border-color:var(--acc); }
 
+  /* --- barra de utilidades (velocidad + paso de frame) --- */
+  #pxyBar { position:fixed; bottom:60px; left:50%; transform:translateX(-50%); z-index:70;
+    display:flex; align-items:center; gap:6px; background:rgba(13,17,25,.94);
+    border:1px solid var(--line); border-radius:12px; padding:6px 10px; box-shadow:0 6px 20px rgba(0,0,0,.4);
+    flex-wrap:wrap; justify-content:center; max-width:calc(100vw - 24px); }
+  #pxyBar .p-label { color:var(--mut); font-size:12px; margin-right:2px; }
+  #pxyBar .chip { background:var(--panel2); color:var(--txt); border:1px solid var(--line); border-radius:7px;
+    padding:4px 8px; font-size:12px; cursor:pointer; font-family:inherit; min-width:38px; }
+  #pxyBar .chip:hover { border-color:var(--acc); }
+  #pxyBar .chip.active { background:var(--acc); border-color:var(--acc); color:#fff; font-weight:600; }
+  #pxyBar .sep { width:1px; align-self:stretch; background:var(--line); margin:2px 2px; }
+  #pxyBar .step { display:inline-flex; align-items:center; gap:5px; background:var(--panel2); color:var(--txt);
+    border:1px solid var(--line); border-radius:7px; padding:4px 9px; font-size:12px; cursor:pointer; font-family:inherit; }
+  #pxyBar .step:hover { border-color:var(--acc); }
+  #pxyBar .step svg { width:13px; height:13px; }
+
   /* --- responsive / móvil --- */
   /* 100dvh evita que la barra inferior quede cortada bajo la UI del navegador móvil. */
   @supports (height:100dvh) { .game-view { height:100dvh; } }
@@ -177,6 +194,28 @@
 <div id="err" style="display:none"></div>
 <div id="container"></div>
 <a class="back" href="./" data-i18n="pBack">← Volver al merger</a>
+<div id="pxyBar" hidden>
+  <span class="p-label" data-i18n="pSpeed">Velocidad</span>
+  <button class="chip" type="button" data-speed="0.1">0.1x</button>
+  <button class="chip" type="button" data-speed="0.5">0.5x</button>
+  <button class="chip" type="button" data-speed="0.75">0.75x</button>
+  <button class="chip" type="button" data-speed="1">1x</button>
+  <button class="chip" type="button" data-speed="2">2x</button>
+  <button class="chip" type="button" data-speed="3">3x</button>
+  <button class="chip" type="button" data-speed="5">5x</button>
+  <button class="chip" type="button" data-speed="10">10x</button>
+  <button class="chip" type="button" data-speed="20">20x</button>
+  <button class="chip" type="button" data-speed="50">50x</button>
+  <span class="sep"></span>
+  <button class="step" type="button" id="stepBack" data-i18n-title="pStepBack">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 5h2v14H5zm14.5 0v14l-9-7z"/></svg>
+    <span data-i18n="pStepBack">Retroceder 1 frame</span>
+  </button>
+  <button class="step" type="button" id="stepFwd" data-i18n-title="pStepFwd">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 5h2v14h-2zM4.5 5v14l9-7z"/></svg>
+    <span data-i18n="pStepFwd">Avanzar 1 frame</span>
+  </button>
+</div>
 
 <script src="vendor/pako-jszip.min.js"></script>
 <script src="game-min_patched.js"></script>
@@ -262,7 +301,81 @@
     view.te.oe = function () { view.la(); };
     window._pxy_C.Oa(view.l.f);
     addPlayerExtras();
+    wirePxyBar();
     seekOnLoad();
+  }
+
+  var SPEEDS = [0.1, 0.5, 0.75, 1, 2, 3, 5, 10, 20, 50];
+
+  function speedIndexFromLabel() {
+    var view = window._pxy_view;
+    if (!view || !view.te || !view.te.f) return 3;
+    var el = view.te.f.querySelector('[data-hook=spd]');
+    if (!el) return 3;
+    var v = parseFloat(el.textContent.replace(/x$/, ''));
+    var i = SPEEDS.indexOf(v);
+    return i < 0 ? 3 : i;
+  }
+
+  function setSpeed(i) {
+    var view = window._pxy_view;
+    if (!view || !view.te || !view.te.f) return;
+    var bar = view.te.f;
+    var cur = speedIndexFromLabel();
+    while (cur < i) { var up = bar.querySelector('[data-hook=spdup]'); if (!up) return; up.click(); cur++; }
+    while (cur > i) { var dn = bar.querySelector('[data-hook=spddn]'); if (!dn) return; dn.click(); cur--; }
+    syncChips();
+  }
+
+  function syncChips() {
+    var bar = document.getElementById('pxyBar');
+    if (!bar) return;
+    var i = speedIndexFromLabel();
+    bar.querySelectorAll('[data-speed]').forEach(function (chip) {
+      chip.classList.toggle('active', SPEEDS.indexOf(parseFloat(chip.dataset.speed)) === i);
+    });
+  }
+
+  function stepFrame(dir) {
+    var rep = window._pxy_rep, view = window._pxy_view;
+    if (!rep || !view || !view.te || !view.te.f) return;
+    var playIcon = view.te.f.querySelector('[data-hook=playicon]');
+    if (playIcon && playIcon.classList.contains('icon-pause')) {
+      var playBtn = view.te.f.querySelector('[data-hook=play]');
+      if (playBtn) { try { playBtn.click(); } catch (e) {} }
+    }
+    if (rep.Pd > 0) rep.Pd = -1;
+    var total = rep.Bf * rep.uh;
+    var target = rep.Ub + dir * rep.uh;
+    if (target < 0) target = 0;
+    if (target > total) target = total;
+    if (dir < 0 && target < rep.Ub) {
+      rep.Qr(target);
+    } else {
+      rep.Ub = target;
+    }
+    rep.hi = window.performance.now();
+    rep.A();
+    try { view.l.A(rep); } catch (e) {}
+    window._pxy_lastUb = rep.Ub;
+    syncChips();
+  }
+
+  function wirePxyBar() {
+    var bar = document.getElementById('pxyBar');
+    if (!bar || !window._pxy_view || !window._pxy_view.te) return;
+    bar.hidden = false;
+    bar.querySelectorAll('[data-speed]').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        setSpeed(SPEEDS.indexOf(parseFloat(chip.dataset.speed)));
+      });
+    });
+    var back = document.getElementById('stepBack');
+    var fwd = document.getElementById('stepFwd');
+    if (back) back.addEventListener('click', function () { stepFrame(-1); });
+    if (fwd) fwd.addEventListener('click', function () { stepFrame(1); });
+    syncChips();
+    setInterval(syncChips, 700);
   }
 
   // --- Botones propios del merger: ocultar chat y pantalla completa ---
@@ -372,7 +485,7 @@
     var rep = window._pxy_rep, n = parseInt(f, 10);
     if (isNaN(n) || n < 0) return;
     n = Math.min(n, rep.Bf);
-    rep.Ub = n * rep.uh; rep.hi = 0;
+    rep.Ub = n * rep.uh; rep.hi = window.performance.now();
     rep.A();
     try { window._pxy_view.l.A(rep); } catch (e) {}
     window._pxy_lastUb = rep.Ub;
@@ -416,6 +529,12 @@
     e.preventDefault();
     if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
   });
+
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+  }
 })();
 </script>
 </body>

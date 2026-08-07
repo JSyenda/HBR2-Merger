@@ -1,7 +1,8 @@
 // merge-worker.js — Web Worker que ejecuta la fusión HBR2 100% en el navegador.
 // Sustituye a (worker.js + hbr2_env.js + server.js) de la versión Node.
 //
-// Flujo: el hilo principal envía { id, f1: ArrayBuffer, f2: ArrayBuffer, mode };
+// Flujo: el hilo principal envía { id, f1: ArrayBuffer, f2: ArrayBuffer, mode, trim1, trim2 };
+// trim1/trim2 = segundos a recortar (final de f1 e inicio de f2; 0 = sin recorte).
 // el worker responde mensajes { id, t: 'line'|'warn'|'done', ... }. En 'done' el
 // ArrayBuffer del merged viaja transferido en result.merged.
 'use strict';
@@ -97,12 +98,30 @@ self.onmessage = function (e) {
     self.postMessage(out, t === 'done' && out.result && out.result.merged ? [out.result.merged] : []);
   }
   try {
-    const res = self.mergeCore.mergeFiles(new Uint8Array(msg.f1), new Uint8Array(msg.f2), { mode: msg.mode });
+    const FPS = 60;
+    function hdrDur(b) { return new DataView(b.buffer, b.byteOffset, b.byteLength).getUint32(8, false); }
+    let b1 = new Uint8Array(msg.f1);
+    let b2 = new Uint8Array(msg.f2);
+    const t1 = Number(msg.trim1) || 0;
+    const t2 = Number(msg.trim2) || 0;
+    if (t1 > 0) {
+      const d = hdrDur(b1);
+      const end = Math.max(Math.min(d - Math.floor(t1 * FPS), d), 1);
+      b1 = self.mergeCore.trimReplay(b1, 0, end);
+    }
+    if (t2 > 0) {
+      const d = hdrDur(b2);
+      const start = Math.min(Math.floor(t2 * FPS), d - 1);
+      b2 = self.mergeCore.trimReplay(b2, start, d);
+    }
+    const res = self.mergeCore.mergeFiles(b1, b2, { mode: msg.mode });
     for (let i = 0; i < res.log.length; i++) post('line', { text: res.log[i] });
     for (let j = 0; j < (res.warn || []).length; j++) post('warn', { text: res.warn[j] });
     post('done', {
       ok: true,
       verifyOk: res.verifyOk,
+      trim1: t1,
+      trim2: t2,
       result: {
         verifyOk: res.verifyOk,
         structural: res.structural,

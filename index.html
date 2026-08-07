@@ -5,14 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HBR2 Merger</title>
 <link rel="icon" href="favicon.ico">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f1420">
 <style>
-  :root { --bg:#0f1420; --panel:#1a2233; --panel2:#202a40; --line:#2c3a55; --txt:#dbe4f4; --mut:#8ba0c0; --acc:#4f8cff; --ok:#2ecc71; --bad:#ff5a5a; --warn:#f1c40f; }
+  :root {
+    --bg:#0f1420; --panel:#1a2233; --panel2:#202a40; --line:#2c3a55; --txt:#dbe4f4; --mut:#8ba0c0;
+    --acc:#4f8cff; --ok:#2ecc71; --bad:#ff5a5a; --warn:#f1c40f;
+    --nav:#111725; --codebg:#0a0f1a; --hov:#2a3550; --soft:#b9c7dd;
+  }
+  html.theme-light {
+    --bg:#f3f5fa; --panel:#ffffff; --panel2:#e9edf5; --line:#d5dce8; --txt:#1d2637; --mut:#5a6b8a;
+    --acc:#2f6fe4; --ok:#1f9d55; --bad:#e5484d; --warn:#a86e00;
+    --nav:#e4e9f3; --codebg:#1d2637; --hov:#dde4f0; --soft:#4a5b78;
+  }
   * { box-sizing:border-box; }
   body { margin:0; font-family:Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--txt); }
   .wrap { max-width:960px; margin:0 auto; padding:24px 16px 64px; }
   /* --- nav --- */
   [hidden] { display:none !important; }
-  header.nav { position:sticky; top:0; z-index:40; background:#111725; border-bottom:1px solid var(--line); }
+  header.nav { position:sticky; top:0; z-index:40; background:var(--nav); border-bottom:1px solid var(--line); }
   header.nav .wrap { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:10px 16px; min-height:58px; }
   .brand { display:inline-flex; align-items:center; gap:10px; color:var(--txt); text-decoration:none; font-weight:700; font-size:17px; letter-spacing:.2px; }
   .brand:hover { color:var(--acc); }
@@ -27,6 +38,7 @@
   .lang-dd { position:relative; }
   .lang-dd-btn { display:inline-flex; align-items:center; gap:7px; background:var(--panel2); color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:13px; cursor:pointer; font-family:inherit; }
   .lang-dd-btn:hover { border-color:var(--acc); }
+  .lang-dd-btn svg { width:15px; height:15px; flex:none; }
   .lang-dd-menu { position:absolute; top:calc(100% + 4px); left:0; z-index:80; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:4px; min-width:150px; box-shadow:0 6px 20px rgba(0,0,0,.5); }
   .lang-dd-menu button { display:flex; align-items:center; gap:8px; width:100%; background:none; border:none; color:var(--txt); font-size:13px; padding:8px 10px; border-radius:6px; cursor:pointer; font-family:inherit; text-align:left; }
   .lang-dd-menu button:hover { background:var(--panel2); }
@@ -35,16 +47,16 @@
   .flag svg { display:block; width:100%; height:100%; }
   #toTop { position:fixed; right:18px; bottom:18px; z-index:60; width:44px; height:44px; border-radius:50%; background:var(--panel2); border:1px solid var(--line); color:var(--acc); cursor:pointer; display:none; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,.4); }
   #toTop.show { display:inline-flex; }
-  #toTop:hover { border-color:var(--acc); background:#2a3550; }
+  #toTop:hover { border-color:var(--acc); background:var(--hov); }
   #toTop svg { width:22px; height:22px; }
   .card > .actions:first-child { margin-top:0; }
   /* --- intro / nota local --- */
   .intro { font-size:13px; }
   .intro code, .localnote code { color:var(--acc); }
-  .localnote { background:rgba(139,160,192,.08); border:1px solid rgba(139,160,192,.28); color:#b9c7dd; border-radius:10px; padding:12px 16px; font-size:13px; margin-bottom:16px; }
+  .localnote { background:rgba(139,160,192,.08); border:1px solid rgba(139,160,192,.28); color:var(--soft); border-radius:10px; padding:12px 16px; font-size:13px; margin-bottom:16px; }
   .localnote b { color:var(--mut); }
   /* --- footer --- */
-  footer.foot { margin-top:24px; background:#111725; border-top:1px solid var(--line); }
+  footer.foot { margin-top:24px; background:var(--nav); border-top:1px solid var(--line); }
   footer.foot .wrap { padding:20px 16px 28px; }
   .foot-links { display:flex; flex-wrap:wrap; justify-content:center; gap:8px 18px; }
   .foot-links a { display:inline-flex; align-items:center; gap:7px; color:var(--mut); font-size:13px; text-decoration:none; }
@@ -56,35 +68,43 @@
   #dropzone b { color:var(--acc); }
   table { width:100%; border-collapse:collapse; margin-top:6px; }
   th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); font-size:13px; }
-  th { color:var(--mut); font-weight:600; }
+  th { color:var(--mut); font-weight:600; white-space:nowrap; }
   td.slot { white-space:nowrap; color:var(--acc); font-weight:600; }
   td.name { word-break:break-all; }
-  .btn { background:var(--panel2); color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:9px 14px; font-size:14px; cursor:pointer; }
+  td.dur { white-space:nowrap; font-variant-numeric:tabular-nums; }
+  tr[draggable="true"] { cursor:grab; }
+  tr[draggable="true"]:active { cursor:grabbing; }
+  tr.drag-over td { background:rgba(79,140,255,.08); }
+  input.trim { width:64px; background:var(--panel2); border:1px solid var(--line); color:var(--txt); border-radius:6px; padding:4px 6px; font-size:12px; }
+  input.trim:disabled { opacity:.4; cursor:not-allowed; }
+  .btn { background:var(--panel2); color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:9px 14px; font-size:14px; cursor:pointer; font-family:inherit; }
   .btn:hover:not(:disabled) { border-color:var(--acc); }
   .btn:disabled { opacity:.45; cursor:not-allowed; }
   .btn.primary { background:var(--acc); border-color:var(--acc); color:#fff; font-weight:600; }
   .btn.small { padding:4px 9px; font-size:12px; }
   .icon-info { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; flex:none; background:var(--panel2); color:var(--mut); border:1px solid var(--line); border-radius:8px; cursor:pointer; padding:0; }
-  .icon-info:hover, .icon-info[aria-expanded="true"] { color:var(--acc); border-color:var(--acc); background:#2a3550; }
+  .icon-info:hover, .icon-info[aria-expanded="true"] { color:var(--acc); border-color:var(--acc); background:var(--hov); }
   .icon-info svg { width:18px; height:18px; }
-  .callout { margin-top:10px; background:rgba(79,140,255,.08); border:1px solid rgba(79,140,255,.3); color:#b9c7dd; border-radius:10px; padding:11px 14px; font-size:13px; line-height:1.55; }
+  .callout { margin-top:10px; background:rgba(79,140,255,.08); border:1px solid rgba(79,140,255,.3); color:var(--soft); border-radius:10px; padding:11px 14px; font-size:13px; line-height:1.55; }
   .actions { display:flex; gap:10px; align-items:center; margin-top:14px; flex-wrap:wrap; }
   .actions.modes label { display:inline-flex; gap:6px; align-items:center; cursor:pointer; font-size:13px; }
   .spacer { flex:1; }
   .tablewrap { overflow-x:auto; }
   td:last-child { white-space:nowrap; text-align:right; }
   th:nth-child(1), td:nth-child(1) { width:150px; }
-  th:nth-child(2), td:nth-child(2) { width:42%; }
-  th:nth-child(3), td:nth-child(3) { width:70px; }
-  pre#log { background:#0a0f1a; border:1px solid var(--line); border-radius:8px; padding:12px; font:12px/1.5 Consolas,'Cascadia Mono',monospace; max-height:340px; overflow:auto; white-space:pre-wrap; word-break:break-all; }
+  pre#log { background:var(--codebg); border:1px solid var(--line); border-radius:8px; padding:12px; font:12px/1.5 Consolas,'Cascadia Mono',monospace; max-height:340px; overflow:auto; white-space:pre-wrap; word-break:break-all; }
   #status { min-height:20px; font-size:14px; margin-top:6px; }
   #status.running { color:var(--warn); }
   #status.ok { color:var(--ok); font-weight:600; }
   #status.failed, #status.error { color:var(--bad); font-weight:600; }
   #download .dl-link { color:var(--ok); font-weight:700; text-decoration:none; border:1px solid var(--ok); border-radius:8px; padding:10px 16px; display:block; margin-top:10px; text-align:center; }
   #download .dl-link:hover { background:rgba(46,204,113,.12); }
-  #download .dl-play { color:#4f8cff; font-weight:700; text-decoration:none; border:1px solid #4f8cff; border-radius:8px; padding:10px 16px; display:block; margin-top:10px; text-align:center; }
+  #download .dl-play { color:var(--acc); font-weight:700; text-decoration:none; border:1px solid var(--acc); border-radius:8px; padding:10px 16px; display:block; margin-top:10px; text-align:center; }
   #download .dl-play:hover { background:rgba(79,140,255,.12); }
+  .rename-input { flex:1 1 200px; min-width:180px; background:var(--panel2); border:1px solid var(--line); color:var(--txt); border-radius:8px; padding:7px 10px; font-size:13px; }
+  .dl-actions { margin-top:10px; }
+  .report { margin-top:10px; }
+  .report pre { background:var(--codebg); border:1px solid var(--line); border-radius:8px; padding:12px; font:12px/1.5 Consolas,'Cascadia Mono',monospace; color:var(--txt); white-space:pre-wrap; }
   .hint { color:var(--mut); font-size:12px; margin-top:8px; }
   #spinner { display:none; width:16px; height:16px; border:2px solid var(--line); border-top-color:var(--warn); border-radius:50%; animation:spin .8s linear infinite; }
   #spinner.on { display:inline-block; vertical-align:-3px; }
@@ -93,6 +113,12 @@
   @keyframes fade { from { opacity:.2; } to { opacity:1; } }
   .warnbar { background:rgba(241,196,15,.1); border:1px solid var(--warn); border-radius:8px; padding:10px 14px; font-size:13px; margin-bottom:16px; display:none; }
   .warnbar b { color:var(--warn); }
+  #myJobs { min-height:60px; }
+  .job-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px; }
+  .job-row:last-child { border-bottom:none; }
+  .job-row .job-open { flex:1; color:var(--acc); text-decoration:none; word-break:break-all; min-width:0; }
+  .job-row .job-open:hover { text-decoration:underline; }
+  .job-row .job-meta { color:var(--mut); white-space:nowrap; font-size:12px; }
   /* --- responsive / móvil --- */
   @media (max-width:640px) {
     body { overflow-x:hidden; }
@@ -110,8 +136,15 @@
     .localnote, .warnbar { padding:10px 12px; }
     footer.foot .wrap { padding:16px 14px 24px; }
     .foot-links { gap:8px 16px; }
+    .job-row { flex-wrap:wrap; }
+    .job-row .job-meta { width:100%; }
   }
 </style>
+<script>
+(function () {
+  try { if (localStorage.getItem('hbr2.theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <header class="nav">
@@ -128,6 +161,13 @@
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
         <span data-i18n="lastRec">Última rec</span>
       </a>
+      <button type="button" class="lang-dd-btn" id="themeBtn" data-i18n-title="themeTitle" aria-label="theme">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 1 0-18z"/></svg>
+      </button>
+      <button type="button" class="lang-dd-btn" id="myJobsBtn" data-i18n-title="myMergesTitle" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h8v6H3zM13 5h8v6h-8zM3 13h8v6H3zM13 13h8v6h-8z"/></svg>
+        <span data-i18n="myMerges">Mis fusiones</span>
+      </button>
       <div class="lang-dd" id="langDD">
         <button type="button" class="lang-dd-btn" id="langBtn" data-i18n-title="langTitle" aria-haspopup="listbox" aria-expanded="false">
           <span class="flag" id="langCurFlag"></span>
@@ -149,7 +189,7 @@
 
 <main class="wrap">
   <div class="card intro" data-i18n="intro">
-    Une dos grabaciones de Haxball (<code>.hbr2</code>) en una sola.
+    Une varias grabaciones de Haxball (<code>.hbr2</code>) en una sola, encadenadas de 2 en 2.
   </div>
 
   <div class="localnote" data-i18n="localnote">
@@ -158,37 +198,34 @@
 
   <div class="warnbar" id="filewarn" data-i18n="filewarn"><b>Estás abriendo este archivo con doble clic (protocolo <code>file://</code>).</b> Chrome bloquea los Web Workers en <code>file://</code>, así que la fusión no puede arrancar. Ábrelo a través de un servidor local (por ejemplo <code>npx serve</code>, la extensión "Live Server" de VS Code o <code>python -m http.server</code> dentro de esta carpeta) o súbelo a GitHub Pages, que es para lo que está preparado.</div>
 
+  <div class="card" id="myJobs" hidden>
+    <div class="actions">
+      <b data-i18n="myMerges">Mis fusiones</b>
+      <div class="spacer"></div>
+    </div>
+    <div id="myJobsList"></div>
+  </div>
+
   <div class="card">
     <div id="dropzone">
-      <div data-i18n="dropMain">Arrastra aquí hasta <b>2 archivos .hbr2</b> o haz clic para elegirlos.</div>
-      <div class="hint" data-i18n="dropHint">El primero será la Rec 1 (inicio), el segundo la Rec 2 (continuación). Puedes intercambiarlos después. Si ya hay 2 recs, una nueva las sustituye en orden rotativo (Rec 1, luego Rec 2).</div>
+      <div data-i18n="dropMain">Arrastra aquí tus recs <b>.hbr2</b> (2 o más) o haz clic para elegirlas.</div>
+      <div class="hint" data-i18n="dropHint">La primera será la Rec 1 (inicio), la segunda la Rec 2 (continuación) y así sucesivamente. Puedes reordenarlas arrastrando las filas o intercambiándolas. También puedes soltarlas en cualquier parte de la página.</div>
     </div>
     <input type="file" id="fileInput" accept=".hbr2" multiple hidden>
-    <input type="file" id="fileInput1" accept=".hbr2" hidden>
-    <input type="file" id="fileInput2" accept=".hbr2" hidden>
+    <div class="hint" data-i18n="dropPage">Suelta recs en cualquier parte de la página.</div>
   </div>
 
   <div class="card">
     <div class="tablewrap">
     <table>
-      <thead><tr><th data-i18n="colPos">Posición</th><th data-i18n="colFile">Archivo</th><th data-i18n="colSize">Tamaño</th><th></th></tr></thead>
-      <tbody>
-        <tr>
-          <td class="slot" data-i18n="slot1">Rec 1 · inicio</td>
-          <td class="name" id="n1">(ninguna)</td>
-          <td id="s1"></td>
-          <td><button class="btn small" id="a1" data-i18n="addBtn">Añadir</button> <button class="btn small" id="c1" data-i18n="remBtn">Quitar</button></td>
-        </tr>
-        <tr>
-          <td class="slot" data-i18n="slot2">Rec 2 · continuación</td>
-          <td class="name" id="n2">(ninguna)</td>
-          <td id="s2"></td>
-          <td><button class="btn small" id="a2" data-i18n="addBtn">Añadir</button> <button class="btn small" id="c2" data-i18n="remBtn">Quitar</button></td>
-        </tr>
-      </tbody>
+      <thead><tr><th data-i18n="colPos">Posición</th><th data-i18n="colFile">Archivo</th><th data-i18n="colSize">Tamaño</th><th data-i18n="durCol">Duración</th><th data-i18n="trimColStart">Inicio −</th><th data-i18n="trimColEnd">Fin −</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
     </table>
     </div>
+    <div class="hint" data-i18n="dragHint">Arrastra las filas para cambiar el orden.</div>
+    <div class="hint" data-i18n="trimHint">Recorta segundos del inicio o del final de cada rec. Útil para quitar tiempo muerto o solapamientos antes de fusionar.</div>
     <div class="actions">
+      <button class="btn" id="addRec" data-i18n="addBtn">Añadir</button>
       <button class="btn" id="swap" data-i18n="swapBtn">Intercambiar orden</button>
       <button type="button" class="icon-info" id="swapInfo" data-i18n-title="swapInfoTitle" aria-expanded="false" aria-controls="swapInfoBox" aria-label="info">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
@@ -196,13 +233,14 @@
       <div class="spacer"></div>
       <button class="btn primary" id="go" data-i18n="mergeBtn">Fusionar</button>
     </div>
+    <div class="hint" data-i18n="ksHint">Atajos: I intercambiar · M fusionar · A añadir · T tema</div>
     <div class="callout" id="swapInfoBox" data-i18n="swapInfoText" hidden>Si la fusión falla o la rec resultante no se reproduce, prueba a intercambiar el orden de las grabaciones.</div>
   </div>
 
   <div class="card">
     <div class="actions modes">
       <b data-i18n="modeLabel">Modo de fusión</b>
-      <label><input type="radio" name="mode" value="standard" checked> <span data-i18n="modeStd">Estándar (haxball.com)</span></label>
+      <label><input type="radio" name="mode" value="standard"> <span data-i18n="modeStd">Estándar (haxball.com)</span></label>
       <label><input type="radio" name="mode" value="exact"> <span data-i18n="modeExact">Exacto (motor patcheado)</span></label>
     </div>
     <div class="hint" data-i18n="modeHint">En caso de que no funcione el <b>Modo Estándar</b>, prueba con el <b>Modo Exacto</b>. Ten en cuenta que puede llegar a fallar.</div>
@@ -244,13 +282,13 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var T = window.HBRI18N.t;
-  var dz = $('dropzone'), fi = $('fileInput'), fi1 = $('fileInput1'), fi2 = $('fileInput2');
-  var slots = { 1: null, 2: null };
-  var overwriteNext = 1;
+  var dz = $('dropzone'), fi = $('fileInput');
+  var tb = $('rows');
+  var recs = [];
+  var draggingIdx = null;
   var jobId = null;
-  var seenLines = 0;
   var worker = null;
-  var currentBufs = null;
+  var currentJob = null;
 
   function fmt(n) {
     if (n == null) return '';
@@ -259,18 +297,90 @@
     return (n / 1048576).toFixed(2) + ' MB';
   }
 
-  function isHbr2(name) { return /\.hbr2$/i.test(name || ''); }
-
-  function setSlot(k, file) {
-    slots[k] = file || null;
-    $('n' + k).textContent = file ? file.name : T('none');
-    $('n' + k).style.color = file ? '' : 'var(--mut)';
-    $('s' + k).textContent = file ? fmt(file.size) : '';
-    refreshGo();
+  function fmtDur(frames) {
+    if (frames == null) return '';
+    var total = Math.round(frames / 60);
+    var m = Math.floor(total / 60), s = total % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
   }
 
-  function refreshGo() {
-    $('go').disabled = !(slots[1] && slots[2]);
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  function isHbr2(name) { return /\.hbr2$/i.test(name || ''); }
+  function stem(n) { return String(n || 'rec').replace(/\.hbr2$/i, '').replace(/[\\/:*?"<>|]+/g, '_'); }
+  function makeId() { return 'j' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+  function refreshGo() { $('go').disabled = recs.length < 2; }
+
+  function mk(tag, cls, txt) {
+    var el = document.createElement(tag);
+    if (cls) el.className = cls;
+    if (txt != null) el.textContent = txt;
+    return el;
+  }
+
+  function mkTrim(i, role, val, disabled) {
+    var inp = document.createElement('input');
+    inp.type = 'number'; inp.min = 0; inp.step = 1; inp.value = val || 0;
+    inp.className = 'trim'; inp.dataset.i = i; inp.dataset.role = role;
+    inp.disabled = disabled;
+    inp.title = T(role === 'start' ? 'trimColStart' : 'trimColEnd');
+    return inp;
+  }
+
+  function renderTable() {
+    tb.innerHTML = '';
+    recs.forEach(function (r, i) {
+      var tr = document.createElement('tr');
+      tr.draggable = true;
+      tr.dataset.i = i;
+      var lbl;
+      if (i === 0) lbl = T('slot1');
+      else if (i === recs.length - 1) lbl = T('slot2');
+      else lbl = 'Rec ' + (i + 1);
+      tr.appendChild(mk('td', 'slot', lbl));
+      var tdName = mk('td', 'name', r.file.name);
+      tdName.title = r.file.name;
+      tr.appendChild(tdName);
+      tr.appendChild(mk('td', null, fmt(r.file.size)));
+      tr.appendChild(mk('td', 'dur', r.dur != null ? fmtDur(r.dur) : '…'));
+      var td5 = mk('td'); td5.appendChild(mkTrim(i, 'start', r.trimStart, i === 0)); tr.appendChild(td5);
+      var td6 = mk('td'); td6.appendChild(mkTrim(i, 'end', r.trimEnd, false)); tr.appendChild(td6);
+      var td7 = mk('td');
+      var rm = mk('button', 'btn small', T('remBtn'));
+      rm.type = 'button'; rm.dataset.rm = i;
+      td7.appendChild(rm);
+      tr.appendChild(td7);
+      tb.appendChild(tr);
+    });
+    $('go').disabled = recs.length < 2;
+  }
+
+  function readDur(file) {
+    if (!file.slice) return Promise.resolve(null);
+    return file.slice(0, 12).arrayBuffer().then(function (b) {
+      if (b.byteLength < 12) return null;
+      return new DataView(b).getUint32(8, false);
+    }).catch(function () { return null; });
+  }
+
+  function readDurations() {
+    recs.forEach(function (r, i) {
+      if (r.dur != null) {
+        var c = tb.querySelector('tr[data-i="' + i + '"] td.dur');
+        if (c) c.textContent = fmtDur(r.dur);
+        return;
+      }
+      readDur(r.file).then(function (d) {
+        r.dur = d;
+        var c = tb.querySelector('tr[data-i="' + i + '"] td.dur');
+        if (c) c.textContent = d != null ? fmtDur(d) : '';
+      });
+    });
   }
 
   function addFiles(list) {
@@ -280,43 +390,25 @@
         line(T('warnNotHbr2', { f: f.name }));
         return;
       }
-      var k;
-      if (!slots[1]) k = 1;
-      else if (!slots[2]) k = 2;
-      else {
-        k = overwriteNext;
-        overwriteNext = overwriteNext === 1 ? 2 : 1;
-        line(T('warnOverwrite', { f: f.name, k: k }));
-      }
-      setSlot(k, f);
-      line(T('selRec', { k: k, f: f.name, s: fmt(f.size) }));
+      var idx = recs.length;
+      recs.push({ file: f, dur: null, trimStart: 0, trimEnd: 0 });
+      line(T('selRec', { k: idx + 1, f: f.name, s: fmt(f.size) }));
     });
-  }
-
-  function addToSlot(k, f) {
-    if (!isHbr2(f.name)) {
-      line(T('warnNotHbr2', { f: f.name }));
-      return;
+    if (files.length) {
+      renderTable();
+      readDurations();
+      refreshGo();
     }
-    setSlot(k, f);
-    line(T('selRec', { k: k, f: f.name, s: fmt(f.size) }));
   }
 
   dz.addEventListener('click', function () { fi.click(); });
   fi.addEventListener('change', function () { addFiles(fi.files); fi.value = ''; });
-  fi1.addEventListener('change', function () { if (fi1.files[0]) addToSlot(1, fi1.files[0]); fi1.value = ''; });
-  fi2.addEventListener('change', function () { if (fi2.files[0]) addToSlot(2, fi2.files[0]); fi2.value = ''; });
-  ['dragenter', 'dragover'].forEach(function (ev) { dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add('over'); }); });
-  ['dragleave', 'drop'].forEach(function (ev) { dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.remove('over'); }); });
-  dz.addEventListener('drop', function (e) { addFiles(e.dataTransfer.files); });
-
-  $('a1').addEventListener('click', function () { fi1.click(); });
-  $('a2').addEventListener('click', function () { fi2.click(); });
-  $('c1').addEventListener('click', function () { setSlot(1, null); });
-  $('c2').addEventListener('click', function () { setSlot(2, null); });
+  $('addRec').addEventListener('click', function () { fi.click(); });
   $('swap').addEventListener('click', function () {
-    var a = slots[1], b = slots[2];
-    setSlot(1, b); setSlot(2, a);
+    if (recs.length < 2) return;
+    var a = recs[0], b = recs[1];
+    recs[0] = b; recs[1] = a;
+    renderTable(); readDurations();
   });
   $('swapInfo').addEventListener('click', function () {
     var box = $('swapInfoBox');
@@ -332,6 +424,65 @@
       btn.setAttribute('aria-expanded', 'false');
     }
   });
+
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add('over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.remove('over'); });
+  });
+  document.addEventListener('dragover', function (e) {
+    if (e.dataTransfer && [].indexOf.call(e.dataTransfer.types, 'Files') >= 0) e.preventDefault();
+  });
+  document.addEventListener('drop', function (e) {
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+  });
+
+  tb.addEventListener('input', function (e) {
+    var el = e.target;
+    if (!el.classList || !el.classList.contains('trim')) return;
+    var r = recs[+el.dataset.i];
+    if (!r) return;
+    var v = Math.max(0, parseInt(el.value, 10) || 0);
+    if (el.dataset.role === 'start') r.trimStart = v; else r.trimEnd = v;
+  });
+
+  tb.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-rm]');
+    if (!b) return;
+    var i = +b.dataset.rm;
+    if (!recs[i]) return;
+    recs.splice(i, 1);
+    renderTable(); readDurations(); refreshGo();
+  });
+
+  tb.addEventListener('dragstart', function (e) {
+    var tr = e.target.closest('tr');
+    if (!tr) return;
+    draggingIdx = +tr.dataset.i;
+    try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', ''); } catch (err) {}
+  });
+  tb.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    var tr = e.target.closest('tr');
+    if (tr) tr.classList.add('drag-over');
+  });
+  tb.addEventListener('dragleave', function (e) {
+    var tr = e.target.closest('tr');
+    if (tr) tr.classList.remove('drag-over');
+  });
+  tb.addEventListener('drop', function (e) {
+    e.preventDefault();
+    var tr = e.target.closest('tr');
+    var to = tr ? +tr.dataset.i : null;
+    if (draggingIdx != null && to != null && draggingIdx !== to) {
+      var m = recs.splice(draggingIdx, 1)[0];
+      recs.splice(to, 0, m);
+      renderTable(); readDurations();
+    }
+  });
+  tb.addEventListener('dragend', function () { draggingIdx = null; });
+
   function line(t) {
     var el = $('log');
     el.textContent += (el.textContent ? '\n' : '') + t;
@@ -352,80 +503,100 @@
     });
   }
 
-  function stem(n) { return String(n || 'rec').replace(/\.hbr2$/i, '').replace(/[\\/:*?"<>|]+/g, '_'); }
-  function makeId() { return 'j' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
-
   function setRunning(on) {
     $('spinner').classList.toggle('on', on);
-    $('go').disabled = on;
+    $('go').disabled = on || recs.length < 2;
     $('swap').disabled = on;
+    $('addRec').disabled = on;
   }
 
-  function showResult(job) {
-    var dl = $('download');
-    if (!job.merged) return;
-    var blob = new Blob([job.merged], { type: 'application/octet-stream' });
-    var url = URL.createObjectURL(blob);
-    dl.innerHTML = '<a class="dl-link" href="' + url + '" download="' + job.mergedName + '">' + T('dlFile', { n: job.mergedName }) + '</a>' +
-      (job.structural ? '' : '<a class="dl-play" href="player.html?job=' + encodeURIComponent(job.id) + '">' + T('dlPlay') + '</a>');
+  function currentMode() {
+    var m = document.querySelector('input[name="mode"]:checked');
+    return m ? m.value : 'standard';
+  }
+
+  function runMerge(buf1, buf2, mode, trim1, trim2) {
+    return new Promise(function (resolve, reject) {
+      var w;
+      try { w = new Worker('merge-worker.js'); } catch (e) { reject(e); return; }
+      worker = w;
+      w.onmessage = function (ev) {
+        var m = ev.data;
+        if (m.t === 'line') line(m.text);
+        else if (m.t === 'warn') line(T('warnPrefix') + m.text);
+        else if (m.t === 'done') {
+          w.terminate();
+          if (worker === w) worker = null;
+          if (m.ok && m.result && m.result.verifyOk) resolve(m.result);
+          else reject(new Error(m.error || T('errVerify')));
+        }
+      };
+      w.onerror = function (e) {
+        w.terminate();
+        if (worker === w) worker = null;
+        reject(new Error(e.message || 'worker error'));
+      };
+      w.postMessage({ id: makeId(), f1: buf1, f2: buf2, mode: mode, trim1: trim1 || 0, trim2: trim2 || 0 });
+    });
+  }
+
+  function chkTrim(sec, dur, label) {
+    if (sec > 0 && dur && Math.floor(sec * 60) >= dur) {
+      throw new Error(label + ': ' + T('trimInvalid', { n: fmtDur(dur) }));
+    }
+  }
+
+  function runChain() {
+    return new Promise(function (resolve, reject) {
+      var mode = currentMode();
+      var n = recs.length;
+      var inputBufs = [];
+      var names = [];
+      var st = null;
+      readBuf(recs[0].file).then(function (first) {
+        inputBufs.push(first);
+        names.push(stem(recs[0].file.name));
+        var acc = first;
+        var i = 1;
+        function step() {
+          if (i >= n) {
+            resolve({ acc: acc, st: st, name: names.join(' + ') + '.hbr2', inputBufs: inputBufs });
+            return;
+          }
+          status(T('mergedN', { i: i, n: n - 1 }), 'running');
+          var r = recs[i];
+          var t1 = recs[i - 1].trimEnd, t2 = r.trimStart;
+          chkTrim(t1, recs[i - 1].dur, recs[i - 1].file.name);
+          chkTrim(t2, r.dur, r.file.name);
+          readBuf(r.file).then(function (nb) {
+            inputBufs.push(nb);
+            names.push(stem(r.file.name));
+            return runMerge(acc, nb, mode, t1, t2).then(function (res) {
+              acc = res.merged;
+              st = res;
+              line(T('mergedD', { i: i, n: n - 1 }));
+              i++;
+              step();
+            });
+          }).catch(function (e) {
+            reject(new Error(T('errMulti', { i: i, n: n - 1, m: e.message })));
+          });
+        }
+        step();
+      }).catch(function (e) {
+        reject(new Error(T('errGen', { m: e.message })));
+      });
+    });
   }
 
   $('go').addEventListener('click', function () {
-    var f1 = slots[1], f2 = slots[2];
-    if (!f1 || !f2) return;
+    if (recs.length < 2) return;
     setRunning(true);
     $('log').textContent = '';
     $('download').innerHTML = '';
-    seenLines = 0;
     status(T('merging'), 'running');
-    var mode = document.querySelector('input[name="mode"]:checked');
-    var w;
-    try {
-      w = new Worker('merge-worker.js');
-    } catch (e) {
-      setRunning(false);
-      status(T('errWorkerStart', { m: e.message }), 'error');
-      line(T('errMsg', { m: e.message }));
-      if (window.location.protocol === 'file:') {
-        line('');
-        line(T('fileHint1'));
-        line(T('fileHint2'));
-        line(T('fileHint3'));
-      }
-      return;
-    }
-    worker = w;
-    w.onmessage = function (e) {
-      var m = e.data;
-      if (m.t === 'line') { line(m.text); }
-      else if (m.t === 'warn') { line(T('warnPrefix') + m.text); }
-      else if (m.t === 'done') {
-        w.terminate();
-        if (worker === w) worker = null;
-        setRunning(false);
-        doneFromWorker(m);
-      }
-    };
-    w.onerror = function (e) {
-      w.terminate();
-      if (worker === w) worker = null;
-      setRunning(false);
-      status(T('errWorkerFail', { m: e.message || 'desconocido' }), 'error');
-    };
-    Promise.all([readBuf(f1), readBuf(f2)]).then(function (bufs) {
-      if (!worker) return;
-      currentBufs = bufs;
-      w.postMessage({ id: makeId(), f1: bufs[0], f2: bufs[1], mode: mode ? mode.value : 'standard' });
-    }).catch(function (e) {
-      setRunning(false);
-      status(T('errGen', { m: e.message }), 'error');
-      line(T('errMsg', { m: e && e.stack ? e.stack : e }));
-    });
-  });
-
-  function doneFromWorker(m) {
-    if (m.ok && m.result && m.result.verifyOk) {
-      var st = m.result;
+    runChain().then(function (out) {
+      var st = out.st;
       jobId = makeId();
       history.replaceState(null, '', '?job=' + encodeURIComponent(jobId));
       setLastJobLink('?job=' + encodeURIComponent(jobId));
@@ -433,16 +604,18 @@
         id: jobId,
         createdAt: Date.now(),
         mode: st.structural ? 'standard' : 'exact',
-        name1: slots[1].name, data1: currentBufs[0],
-        name2: slots[2].name, data2: currentBufs[1],
-        merged: st.merged,
-        mergedName: stem(slots[1].name) + ' + ' + stem(slots[2].name) + '.hbr2',
+        inputs: out.inputBufs.map(function (b, i) { return { name: recs[i].file.name, data: b }; }),
+        name1: recs[0].file.name, data1: out.inputBufs[0],
+        name2: recs[1] ? recs[1].file.name : null, data2: out.inputBufs[1],
+        merged: out.acc,
+        mergedName: out.name,
         verifyOk: st.verifyOk, structural: st.structural, mbEmitted: st.mbEmitted,
         framesChecked: st.framesChecked, dur1: st.dur1, dur2: st.dur2,
         mergedDur: st.mergedDur, mergedSize: st.mergedSize, mergedDecSize: st.mergedDecSize,
         junctionBytes: st.junctionBytes,
         lines: $('log').textContent.split('\n'),
       };
+      currentJob = job;
       showResult(job);
       if (st.structural) {
         status(T('vOKStd'), 'ok');
@@ -454,31 +627,210 @@
       window.HBRDB.saveJob(job).catch(function (e) {
         line(T('errNoSave', { m: e.message }));
       });
-    } else if (m.ok === false) {
-      status(T('errGen', { m: m.error || T('errVerify') }), 'error');
-      line(T('errVerify'));
+    }).catch(function (e) {
+      status(T('errGen', { m: e.message }), 'error');
+      line(T('errMsg', { m: e.message }));
+    }).then(function () {
+      setRunning(false);
+    });
+  });
+
+  function reportHtml(job) {
+    var lines = [
+      T('lblName') + ': ' + (job.label || job.mergedName),
+      T('lblDate') + ': ' + new Date(job.createdAt).toLocaleString(),
+      T('lblMode') + ': ' + (job.structural ? 'standard' : 'exact'),
+      T('lblDur1') + ': ' + fmtDur(job.dur1),
+      T('lblDur2') + ': ' + fmtDur(job.dur2),
+      T('lblMerged') + ': ' + fmtDur(job.mergedDur),
+      T('lblSizeOut') + ': ' + fmt(job.mergedSize),
+      T('lblJunction') + ': ' + (job.junctionBytes != null ? job.junctionBytes + ' B' : '—'),
+      T('lblFrames') + ': ' + job.framesChecked,
+    ];
+    return '<pre>' + lines.map(function (l) { return esc(l); }).join('\n') + '</pre>';
+  }
+
+  function copyLink(id) {
+    var url = location.origin + location.pathname + '?job=' + encodeURIComponent(id);
+    function done(ok) { line(ok ? T('copyLinkDone') : T('copyFail')); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { done(true); }, function () { legacyCopy(url, done); });
     } else {
-      status(T('vFailed'), 'failed');
+      legacyCopy(url, done);
     }
   }
 
-  setSlot(1, null); setSlot(2, null);
+  function legacyCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    done(ok);
+  }
 
-  if (window.location.protocol === 'file:') {
-    var fw = $('filewarn');
-    if (fw) fw.style.display = 'block';
+  function showResult(job) {
+    currentJob = job;
+    var dl = $('download');
+    dl.innerHTML = '';
+    if (!job.merged) return;
+    var blob = new Blob([job.merged], { type: 'application/octet-stream' });
+    var url = URL.createObjectURL(blob);
+    var a = mk('a', 'dl-link', T('dlFile', { n: job.mergedName }));
+    a.href = url; a.setAttribute('download', job.mergedName);
+    dl.appendChild(a);
+    if (!job.structural) {
+      var p = mk('a', 'dl-play', T('dlPlay'));
+      p.href = 'player.html?job=' + encodeURIComponent(job.id);
+      dl.appendChild(p);
+    }
+    var row = mk('div', 'actions dl-actions');
+    var inp = document.createElement('input');
+    inp.id = 'outName'; inp.type = 'text'; inp.className = 'rename-input';
+    inp.placeholder = T('renamePh'); inp.value = job.mergedName;
+    var rn = mk('button', 'btn small', T('renameBtn')); rn.type = 'button';
+    var rp = mk('button', 'btn small', T('reportBtn')); rp.type = 'button';
+    var cp = mk('button', 'btn small', T('copyLink')); cp.type = 'button';
+    row.appendChild(inp); row.appendChild(rn); row.appendChild(rp); row.appendChild(cp);
+    dl.appendChild(row);
+    var rep = mk('div', 'report');
+    rep.id = 'report';
+    rep.hidden = true;
+    rep.innerHTML = reportHtml(job);
+    dl.appendChild(rep);
+    rn.addEventListener('click', function () {
+      var nm = (inp.value || '').trim();
+      if (!nm) return;
+      if (!/\.hbr2$/i.test(nm)) nm += '.hbr2';
+      currentJob.mergedName = nm;
+      currentJob.label = nm;
+      window.HBRDB.saveJob(currentJob).then(function () {
+        line(T('renameDone', { n: nm }));
+      }).catch(function (e) {
+        line(T('errNoSave', { m: e.message }));
+      });
+      a.setAttribute('download', nm);
+      a.textContent = T('dlFile', { n: nm });
+    });
+    rp.addEventListener('click', function () {
+      rep.hidden = !rep.hidden;
+      rp.textContent = T(rep.hidden ? 'reportBtn' : 'reportHide');
+    });
+    cp.addEventListener('click', function () { copyLink(job.id); });
+  }
+
+  function setLastJobLink(url) {
+    var a = document.getElementById('navLastJob');
+    if (!a) return;
+    a.href = url;
+    a.hidden = false;
+  }
+
+  var ICON_THEME = {
+    dark: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 1 0-18z"/></svg>',
+    light: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>'
+  };
+  function themeSync() {
+    var btn = $('themeBtn');
+    var light = document.documentElement.classList.contains('theme-light');
+    btn.innerHTML = light ? ICON_THEME.light : ICON_THEME.dark;
+  }
+  $('themeBtn').addEventListener('click', function () {
+    var root = document.documentElement;
+    root.classList.toggle('theme-light');
+    try { localStorage.setItem('hbr2.theme', root.classList.contains('theme-light') ? 'light' : 'dark'); } catch (e) {}
+    themeSync();
+  });
+  themeSync();
+
+  function renderMyJobs() {
+    var box = $('myJobsList');
+    box.innerHTML = '';
+    window.HBRDB.listJobs().then(function (jobs) {
+      if (!jobs.length) { box.textContent = T('noMerges'); return; }
+      jobs.forEach(function (j) {
+        var row = mk('div', 'job-row');
+        var a = mk('a', 'job-open', (j.label || j.mergedName) + ' (' + fmtDur(j.mergedDur) + ')');
+        a.href = '?job=' + encodeURIComponent(j.id);
+        var meta = mk('span', 'job-meta', new Date(j.createdAt).toLocaleString());
+        var del = mk('button', 'btn small', T('delJob'));
+        del.type = 'button';
+        del.addEventListener('click', function () {
+          window.HBRDB.deleteJob(j.id).then(function () {
+            line(T('delDone', { id: j.id }));
+            renderMyJobs();
+          }).catch(function (e) {
+            line(T('delFail', { m: e.message }));
+          });
+        });
+        row.appendChild(a); row.appendChild(meta); row.appendChild(del);
+        box.appendChild(row);
+      });
+    }).catch(function () { box.textContent = T('noMerges'); });
+  }
+
+  $('myJobsBtn').addEventListener('click', function () {
+    var box = $('myJobs');
+    var show = box.hidden;
+    box.hidden = !show;
+    this.setAttribute('aria-expanded', show ? 'true' : 'false');
+    if (show) renderMyJobs();
+  });
+
+  var MODE_KEY = 'hbr2.mode';
+  try {
+    var savedMode = localStorage.getItem(MODE_KEY);
+    if (savedMode === 'standard' || savedMode === 'exact') {
+      var el = document.querySelector('input[name="mode"][value="' + savedMode + '"]');
+      if (el) el.checked = true;
+    }
+  } catch (e) {}
+  document.querySelectorAll('input[name="mode"]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+      try { localStorage.setItem(MODE_KEY, radio.value); } catch (e) {}
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    var k = (e.key || '').toLowerCase();
+    if (k === 'i') { e.preventDefault(); $('swap').click(); }
+    else if (k === 'm') { e.preventDefault(); $('go').click(); }
+    else if (k === 'a') { e.preventDefault(); fi.click(); }
+    else if (k === 't') { e.preventDefault(); $('themeBtn').click(); }
+  });
+
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
   }
 
   // --- Restauración de estado: al volver desde el reproductor (?job=) se leen de
-  // IndexedDB las 2 recs originales + el merged + el log guardados en este navegador. ---
+  // IndexedDB las recs originales + el merged + el log guardados en este navegador. ---
   function restoreJob(id) {
     jobId = id;
     window.HBRDB.getJob(id).then(function (j) {
       if (!j) throw new Error(T('errNoJob'));
       var modeEl = document.querySelector('input[name="mode"][value="' + (j.mode || 'standard') + '"]');
       if (modeEl) modeEl.checked = true;
-      if (j.data1) setSlot(1, new File([j.data1], j.name1)); else line(T('errNoRestore1'));
-      if (j.data2) setSlot(2, new File([j.data2], j.name2)); else line(T('errNoRestore2'));
+      var ins = j.inputs;
+      if (ins && ins.length) {
+        recs = [];
+        ins.forEach(function (inp) {
+          if (inp && inp.data) recs.push({ file: new File([inp.data], inp.name), dur: null, trimStart: 0, trimEnd: 0 });
+        });
+        if (recs.length) { renderTable(); refreshGo(); readDurations(); }
+      } else {
+        if (j.data1) recs.push({ file: new File([j.data1], j.name1), dur: null, trimStart: 0, trimEnd: 0 });
+        if (j.data2) recs.push({ file: new File([j.data2], j.name2), dur: null, trimStart: 0, trimEnd: 0 });
+        if (recs.length) { renderTable(); refreshGo(); readDurations(); }
+      }
       (j.lines || []).forEach(function (l) { line(l); });
       if (j.verifyOk) {
         showResult(j);
@@ -493,11 +845,9 @@
     });
   }
 
-  function setLastJobLink(url) {
-    var a = document.getElementById('navLastJob');
-    if (!a) return;
-    a.href = url;
-    a.hidden = false;
+  if (window.location.protocol === 'file:') {
+    var fw = $('filewarn');
+    if (fw) fw.style.display = 'block';
   }
 
   var q = new URLSearchParams(window.location.search);

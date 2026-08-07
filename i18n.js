@@ -69,7 +69,11 @@
       pErrRead: 'no se pudo leer el archivo',
       pErrNoJob: 'el trabajo no existe en este navegador (se borró el historial local)',
       pErrRender: 'fallo de render (frame {f}): {m}',
-      pPickFile: 'Elegir archivo'
+      pPickFile: 'Elegir archivo',
+      pChatHide: 'Ocultar chat',
+      pChatShow: 'Mostrar chat',
+      pFullscreen: 'Pantalla completa',
+      pFullscreenExit: 'Salir de pantalla completa'
     },
     en: {
       lastRecTitle: 'Restore last rec (?job=…)',
@@ -135,7 +139,11 @@
       pErrRead: 'could not read the file',
       pErrNoJob: 'the job does not exist in this browser (local history was cleared)',
       pErrRender: 'render failure (frame {f}): {m}',
-      pPickFile: 'Choose file'
+      pPickFile: 'Choose file',
+      pChatHide: 'Hide chat',
+      pChatShow: 'Show chat',
+      pFullscreen: 'Fullscreen',
+      pFullscreenExit: 'Exit fullscreen'
     }
   };
 

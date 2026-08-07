@@ -146,7 +146,7 @@
     },
     en: {
       name: 'English',
-      flag: '<svg viewBox="0 0 12 8" aria-hidden="true"><rect width="12" height="8" fill="#012169"/><path fill="#fff" stroke="#fff" stroke-width="1.5" stroke-linecap="square" d="M0 0l6 4 6-4M0 8l6-4 6 4"/><path fill="#C8102E" stroke="#C8102E" stroke-width="0.9" stroke-linecap="square" d="M0 0l6 4 6-4M0 8l6-4 6 4"/><path fill="#fff" stroke="#fff" stroke-width="2.2" stroke-linecap="square" d="M0 4h12M6 0v8"/><path fill="#C8102E" stroke="#C8102E" stroke-width="1.3" stroke-linecap="square" d="M0 4h12M6 0v8"/></svg>'
+      flag: '<svg viewBox="0 0 12 8" aria-hidden="true"><rect width="12" height="8" fill="#00247D"/><path fill="none" stroke="#FFFFFF" stroke-width="1.8" d="M0 0l6 4 6-4M0 8l6-4 6 4"/><path fill="none" stroke="#CF142B" stroke-width="0.9" d="M0 0l6 4 6-4M0 8l6-4 6 4"/><path fill="none" stroke="#FFFFFF" stroke-width="1.8" d="M0 4h12M6 0v8"/><path fill="none" stroke="#CF142B" stroke-width="0.9" d="M0 4h12M6 0v8"/></svg>'
     }
   };
 

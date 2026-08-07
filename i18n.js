@@ -8,7 +8,7 @@
     es: {
       lastRecTitle: 'Restaurar la última rec (?job=…)',
       lastRec: 'Última rec',
-      intro: 'Une dos grabaciones de Haxball (<code>.hbr2</code>) en una sola.<br><b>Modo Estándar</b> <em>(recomendado)</em>: crea una rec normal que se puede ver en cualquier reproductor, incluido <b>haxball.com</b>.<br><b>Modo Exacto</b>: conserva la posición exacta de los jugadores al empalmar, pero solo se puede ver con el reproductor de esta web.<br><em>Orden: Rec 1 (comienzo) + Rec 2 (final)</em>.',
+      intro: 'Une dos grabaciones de Haxball (<code>.hbr2</code>) en una sola.<br><b>Modo Estándar</b> <em>(recomendado)</em>: crea una rec normal que se puede ver en cualquier reproductor, incluido <b>haxball.com</b>.<br><b>Modo Exacto</b>: conserva la posición exacta de los jugadores al fusionar. Nota: es posible que solo se pueda ver con el reproductor de esta web.<br><em>Orden: Rec 1 (comienzo) + Rec 2 (final)</em>.',
       localnote: 'Todo se procesa <b>íntegramente en tu navegador</b>: los archivos no se suben a ningún servidor y las recs quedan guardadas localmente (se restauran con el enlace <code>?job=…</code>).',
       filewarn: 'Estás abriendo este archivo con doble clic (protocolo <code>file://</code>). Chrome bloquea los Web Workers en <code>file://</code>, así que la fusión no puede arrancar. Ábrelo a través de un servidor local (por ejemplo <code>npx serve</code>, la extensión "Live Server" de VS Code o <code>python -m http.server</code> dentro de esta carpeta) o súbelo a GitHub Pages, que es para lo que está preparado.',
       dropMain: 'Arrastra aquí hasta <b>2 archivos .hbr2</b> o haz clic para elegirlos.',
@@ -74,7 +74,7 @@
     en: {
       lastRecTitle: 'Restore last rec (?job=…)',
       lastRec: 'Last rec',
-      intro: 'Combine two Haxball recordings (<code>.hbr2</code>) into a single one.<br><b>Standard Mode</b> <em>(recommended)</em>: produces a normal replay that plays on any player, including <b>haxball.com</b>.<br><b>Exact Mode</b>: keeps the exact player positions at the join, but it can only be played with this site\'s player.<br><em>Order: Rec 1 (start) + Rec 2 (continuation)</em>.',
+      intro: 'Combine two Haxball recordings (<code>.hbr2</code>) into a single one.<br><b>Standard Mode</b> <em>(recommended)</em>: produces a normal replay that plays on any player, including <b>haxball.com</b>.<br><b>Exact Mode</b>: keeps the exact player positions when merging. Note: it may only be playable with this site\'s player.<br><em>Order: Rec 1 (start) + Rec 2 (continuation)</em>.',
       localnote: 'Everything is processed <b>entirely in your browser</b>: files are never uploaded to any server and recs are kept locally (restore them with the <code>?job=…</code> link).',
       filewarn: 'You are opening this file by double-clicking (<code>file://</code> protocol). Chrome blocks Web Workers on <code>file://</code>, so the merge cannot start. Open it through a local server (e.g. <code>npx serve</code>, the VS Code "Live Server" extension or <code>python -m http.server</code> in this folder) or upload it to GitHub Pages, which is what it is prepared for.',
       dropMain: 'Drag up to <b>2 .hbr2 files</b> here or click to choose them.',
@@ -139,6 +139,17 @@
     }
   };
 
+  var LANGS = {
+    es: {
+      name: 'Español',
+      flag: '<svg viewBox="0 0 24 16" aria-hidden="true"><rect width="24" height="16" fill="#AA151B"/><rect y="4" width="24" height="8" fill="#F1BF00"/></svg>'
+    },
+    en: {
+      name: 'English',
+      flag: '<svg viewBox="0 0 12 8" aria-hidden="true"><rect width="12" height="8" fill="#012169"/><path fill="#fff" stroke="#fff" stroke-width="1.5" stroke-linecap="square" d="M0 0l6 4 6-4M0 8l6-4 6 4"/><path fill="#C8102E" stroke="#C8102E" stroke-width="0.9" stroke-linecap="square" d="M0 0l6 4 6-4M0 8l6-4 6 4"/><path fill="#fff" stroke="#fff" stroke-width="2.2" stroke-linecap="square" d="M0 4h12M6 0v8"/><path fill="#C8102E" stroke="#C8102E" stroke-width="1.3" stroke-linecap="square" d="M0 4h12M6 0v8"/></svg>'
+    }
+  };
+
   function detect() {
     var langs = [];
     try {
@@ -182,8 +193,19 @@
     document.querySelectorAll('[data-i18n-ph]').forEach(function (el) {
       el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph')));
     });
-    var sel = document.getElementById('langSel');
-    if (sel) sel.value = LANG;
+    var meta = LANGS[LANG] || LANGS.es;
+    var curFlag = document.getElementById('langCurFlag');
+    var curName = document.getElementById('langCurName');
+    if (curFlag) curFlag.innerHTML = meta.flag;
+    if (curName) curName.textContent = meta.name;
+    document.querySelectorAll('#langMenu [data-lang]').forEach(function (b) {
+      var flag = b.querySelector('.flag');
+      var name = b.querySelector('.lname');
+      var m = LANGS[b.getAttribute('data-lang')];
+      if (flag && m) flag.innerHTML = m.flag;
+      if (name && m) name.textContent = m.name;
+      b.classList.toggle('active', b.getAttribute('data-lang') === LANG);
+    });
   }
 
   function set(lang) {
@@ -194,9 +216,34 @@
   }
 
   function bind() {
-    var sel = document.getElementById('langSel');
-    if (sel) {
-      sel.addEventListener('change', function () { set(sel.value); });
+    var btn = document.getElementById('langBtn');
+    var menu = document.getElementById('langMenu');
+    if (btn && menu) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        menu.hidden = !menu.hidden;
+        btn.setAttribute('aria-expanded', menu.hidden ? 'false' : 'true');
+      });
+      menu.addEventListener('click', function (e) {
+        var b = e.target && e.target.closest ? e.target.closest('[data-lang]') : null;
+        if (b) {
+          set(b.getAttribute('data-lang'));
+          menu.hidden = true;
+          btn.setAttribute('aria-expanded', 'false');
+        }
+      });
+      document.addEventListener('click', function (e) {
+        if (e.target && e.target.closest && !e.target.closest('#langDD')) {
+          menu.hidden = true;
+          btn.setAttribute('aria-expanded', 'false');
+        }
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          menu.hidden = true;
+          btn.setAttribute('aria-expanded', 'false');
+        }
+      });
     }
     apply();
   }

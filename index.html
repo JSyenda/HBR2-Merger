@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HBR2 Merger</title>
+<link rel="icon" href="favicon.ico">
 <style>
   :root { --bg:#0f1420; --panel:#1a2233; --panel2:#202a40; --line:#2c3a55; --txt:#dbe4f4; --mut:#8ba0c0; --acc:#4f8cff; --ok:#2ecc71; --bad:#ff5a5a; --warn:#f1c40f; }
   * { box-sizing:border-box; }
@@ -23,6 +24,12 @@
   .discord { display:inline-flex; align-items:center; gap:8px; background:#5865F2; color:#fff; font-weight:600; font-size:14px; text-decoration:none; padding:9px 16px; border-radius:8px; white-space:nowrap; }
   .discord:hover { background:#4752c4; }
   .discord svg { width:18px; height:18px; }
+  .lang { background:var(--panel2); color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:13px; cursor:pointer; font-family:inherit; }
+  .lang:hover { border-color:var(--acc); }
+  #toTop { position:fixed; right:18px; bottom:18px; z-index:60; width:44px; height:44px; border-radius:50%; background:var(--panel2); border:1px solid var(--line); color:var(--acc); cursor:pointer; display:none; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,.4); }
+  #toTop.show { display:inline-flex; }
+  #toTop:hover { border-color:var(--acc); background:#2a3550; }
+  #toTop svg { width:22px; height:22px; }
   .card > .actions:first-child { margin-top:0; }
   /* --- intro / nota local --- */
   .intro { font-size:13px; }
@@ -103,9 +110,13 @@
       HBR2 Merger
     </a>
     <nav class="nav-links">
-      <a class="nav-job" id="navLastJob" href="#" hidden title="Restaurar la última rec (?job=…)">
+      <select id="langSel" class="lang" data-i18n-title="langTitle" aria-label="Language / Idioma">
+        <option value="es">Español</option>
+        <option value="en">English</option>
+      </select>
+      <a class="nav-job" id="navLastJob" href="#" hidden data-i18n-title="lastRecTitle">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
-        Última rec
+        <span data-i18n="lastRec">Última rec</span>
       </a>
       <a class="discord" href="https://discord.gg/r4TFnVPEXw" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
@@ -116,20 +127,20 @@
 </header>
 
 <main class="wrap">
-  <div class="card intro">
-    Une dos recs de Haxball (<code>.hbr2</code>) en una sola. <br><b>Modo Estándar</b> <em>(recomendado)</em> = unión solo con acciones vanilla, lista para reproducir en <b>haxball.com</b>. <br><b>Modo Exacto</b> = paridad byte-exacta con <code>Mb</code>, suele funcionar solo con el motor parcheado (Disponible en esta web tras fusionar 2 recs con este modo). <br><em>Orden: Rec 1 (inicio) + Rec 2 (continuación)</em>.
+  <div class="card intro" data-i18n="intro">
+    Une dos grabaciones de Haxball (<code>.hbr2</code>) en una sola.
   </div>
 
-  <div class="localnote">
-    Todo se procesa <b>íntegramente en tu navegador</b> (Web Worker + IndexedDB): los archivos no se suben a ningún servidor y los trabajos quedan guardados localmente (se restauran con el enlace <code>?job=…</code>).
+  <div class="localnote" data-i18n="localnote">
+    Todo se procesa <b>íntegramente en tu navegador</b>: los archivos no se suben a ningún servidor y las recs quedan guardadas localmente (se restauran con el enlace <code>?job=…</code>).
   </div>
 
-  <div class="warnbar" id="filewarn"><b>Estás abriendo este archivo con doble clic (protocolo <code>file://</code>).</b> Chrome bloquea los Web Workers en <code>file://</code>, así que la fusión no puede arrancar. Ábrelo a través de un servidor local (por ejemplo <code>npx serve</code>, la extensión "Live Server" de VS Code o <code>python -m http.server</code> dentro de esta carpeta) o súbelo a GitHub Pages, que es para lo que está preparado.</div>
+  <div class="warnbar" id="filewarn" data-i18n="filewarn"><b>Estás abriendo este archivo con doble clic (protocolo <code>file://</code>).</b> Chrome bloquea los Web Workers en <code>file://</code>, así que la fusión no puede arrancar. Ábrelo a través de un servidor local (por ejemplo <code>npx serve</code>, la extensión "Live Server" de VS Code o <code>python -m http.server</code> dentro de esta carpeta) o súbelo a GitHub Pages, que es para lo que está preparado.</div>
 
   <div class="card">
     <div id="dropzone">
-      <div>Arrastra aquí hasta <b>2 archivos .hbr2</b> o haz clic para elegirlos.</div>
-      <div class="hint">El primero será la Rec 1 (inicio), el segundo la Rec 2 (continuación). Puedes intercambiarlos después. Si ya hay 2 recs, una nueva las sustituye en orden rotativo (Rec 1, luego Rec 2).</div>
+      <div data-i18n="dropMain">Arrastra aquí hasta <b>2 archivos .hbr2</b> o haz clic para elegirlos.</div>
+      <div class="hint" data-i18n="dropHint">El primero será la Rec 1 (inicio), el segundo la Rec 2 (continuación). Puedes intercambiarlos después. Si ya hay 2 recs, una nueva las sustituye en orden rotativo (Rec 1, luego Rec 2).</div>
     </div>
     <input type="file" id="fileInput" accept=".hbr2" multiple hidden>
     <input type="file" id="fileInput1" accept=".hbr2" hidden>
@@ -139,42 +150,42 @@
   <div class="card">
     <div class="tablewrap">
     <table>
-      <thead><tr><th>Posición</th><th>Archivo</th><th>Tamaño</th><th></th></tr></thead>
+      <thead><tr><th data-i18n="colPos">Posición</th><th data-i18n="colFile">Archivo</th><th data-i18n="colSize">Tamaño</th><th></th></tr></thead>
       <tbody>
         <tr>
-          <td class="slot">Rec 1 · inicio</td>
+          <td class="slot" data-i18n="slot1">Rec 1 · inicio</td>
           <td class="name" id="n1">(ninguna)</td>
           <td id="s1"></td>
-          <td><button class="btn small" id="a1">Añadir</button> <button class="btn small" id="c1">Quitar</button></td>
+          <td><button class="btn small" id="a1" data-i18n="addBtn">Añadir</button> <button class="btn small" id="c1" data-i18n="remBtn">Quitar</button></td>
         </tr>
         <tr>
-          <td class="slot">Rec 2 · continuación</td>
+          <td class="slot" data-i18n="slot2">Rec 2 · continuación</td>
           <td class="name" id="n2">(ninguna)</td>
           <td id="s2"></td>
-          <td><button class="btn small" id="a2">Añadir</button> <button class="btn small" id="c2">Quitar</button></td>
+          <td><button class="btn small" id="a2" data-i18n="addBtn">Añadir</button> <button class="btn small" id="c2" data-i18n="remBtn">Quitar</button></td>
         </tr>
       </tbody>
     </table>
     </div>
     <div class="actions">
-      <button class="btn" id="swap">Intercambiar orden</button>
+      <button class="btn" id="swap" data-i18n="swapBtn">Intercambiar orden</button>
       <div class="spacer"></div>
-      <button class="btn primary" id="go">Fusionar</button>
+      <button class="btn primary" id="go" data-i18n="mergeBtn">Fusionar</button>
     </div>
   </div>
 
   <div class="card">
     <div class="actions modes">
-      <b>Modo de fusión</b>
-      <label><input type="radio" name="mode" value="standard" checked> Estándar (haxball.com)</label>
-      <label><input type="radio" name="mode" value="exact"> Exacto (motor patcheado)</label>
+      <b data-i18n="modeLabel">Modo de fusión</b>
+      <label><input type="radio" name="mode" value="standard" checked> <span data-i18n="modeStd">Estándar (haxball.com)</span></label>
+      <label><input type="radio" name="mode" value="exact"> <span data-i18n="modeExact">Exacto (motor patcheado)</span></label>
     </div>
-    <div class="hint">En caso de que no funcione el <b>Modo Estándar</b>, prueba con el <b>Modo Exacto</b>. Ten en cuenta que puede llegar a fallar.</div>
+    <div class="hint" data-i18n="modeHint">En caso de que no funcione el <b>Modo Estándar</b>, prueba con el <b>Modo Exacto</b>. Ten en cuenta que puede llegar a fallar.</div>
   </div>
 
   <div class="card">
     <div class="actions">
-      <b>Proceso</b>
+      <b data-i18n="processLabel">Proceso</b>
       <span id="spinner"></span>
     </div>
     <pre id="log"></pre>
@@ -187,8 +198,7 @@
   <div class="wrap">
     <div class="foot-links">
       <a href="https://discord.gg/r4TFnVPEXw" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>Discord</a>
-      <a class="foot-job" id="footLastJob" href="#" hidden title="Restaurar la última rec (?job=…)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>Última rec</a>
-      <a href="https://ffl-theta.vercel.app/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>FFL</a>
+      <a href="https://ffl-theta.vercel.app/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>FFL WEB</a>
       <a href="https://www.youtube.com/@FFLHax" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>YouTube</a>
       <a href="https://www.twitch.tv/futsalfusionleaguehax" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>Twitch</a>
       <a href="https://kick.com/futsalfusionleaguehax" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M1.333 0h8v5.333H12V2.667h2.667V0h8v8H20v2.667h-2.667v2.666H20V16h2.667v8h-8v-2.667H12v-2.666H9.333V24h-8Z"/></svg>Kick</a>
@@ -197,12 +207,18 @@
   </div>
 </footer>
 
+<button id="toTop" type="button" data-i18n-title="toTopTitle" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.41 15.41 12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+</button>
+
 <script src="db.js"></script>
+<script src="i18n.js"></script>
 <script>
 (function () {
   'use strict';
 
   var $ = function (id) { return document.getElementById(id); };
+  var T = window.HBRI18N.t;
   var dz = $('dropzone'), fi = $('fileInput'), fi1 = $('fileInput1'), fi2 = $('fileInput2');
   var slots = { 1: null, 2: null };
   var overwriteNext = 1;
@@ -222,7 +238,7 @@
 
   function setSlot(k, file) {
     slots[k] = file || null;
-    $('n' + k).textContent = file ? file.name : '(ninguna)';
+    $('n' + k).textContent = file ? file.name : T('none');
     $('n' + k).style.color = file ? '' : 'var(--mut)';
     $('s' + k).textContent = file ? fmt(file.size) : '';
     refreshGo();
@@ -236,7 +252,7 @@
     var files = Array.prototype.slice.call(list || []);
     files.forEach(function (f) {
       if (!isHbr2(f.name)) {
-        line('AVISO: "' + f.name + '" no parece un .hbr2, se ignora.');
+        line(T('warnNotHbr2', { f: f.name }));
         return;
       }
       var k;
@@ -245,20 +261,20 @@
       else {
         k = overwriteNext;
         overwriteNext = overwriteNext === 1 ? 2 : 1;
-        line('AVISO: ya hay 2 recs; "' + f.name + '" sustituye a la Rec ' + k + ' (rotativo).');
+        line(T('warnOverwrite', { f: f.name, k: k }));
       }
       setSlot(k, f);
-      line('Seleccionada Rec ' + k + ': ' + f.name + ' (' + fmt(f.size) + ')');
+      line(T('selRec', { k: k, f: f.name, s: fmt(f.size) }));
     });
   }
 
   function addToSlot(k, f) {
     if (!isHbr2(f.name)) {
-      line('AVISO: "' + f.name + '" no parece un .hbr2, se ignora.');
+      line(T('warnNotHbr2', { f: f.name }));
       return;
     }
     setSlot(k, f);
-    line('Seleccionada Rec ' + k + ': ' + f.name + ' (' + fmt(f.size) + ')');
+    line(T('selRec', { k: k, f: f.name, s: fmt(f.size) }));
   }
 
   dz.addEventListener('click', function () { fi.click(); });
@@ -311,8 +327,8 @@
     if (!job.merged) return;
     var blob = new Blob([job.merged], { type: 'application/octet-stream' });
     var url = URL.createObjectURL(blob);
-    dl.innerHTML = '<a class="dl-link" href="' + url + '" download="' + job.mergedName + '">Descargar ' + job.mergedName + '</a>' +
-      (job.structural ? '' : '<a class="dl-play" href="player.html?job=' + encodeURIComponent(job.id) + '">Reproducir (motor parcheado)</a>');
+    dl.innerHTML = '<a class="dl-link" href="' + url + '" download="' + job.mergedName + '">' + T('dlFile', { n: job.mergedName }) + '</a>' +
+      (job.structural ? '' : '<a class="dl-play" href="player.html?job=' + encodeURIComponent(job.id) + '">' + T('dlPlay') + '</a>');
   }
 
   $('go').addEventListener('click', function () {
@@ -322,20 +338,20 @@
     $('log').textContent = '';
     $('download').innerHTML = '';
     seenLines = 0;
-    status('Fusionando... (verificación en marcha)', 'running');
+    status(T('merging'), 'running');
     var mode = document.querySelector('input[name="mode"]:checked');
     var w;
     try {
       w = new Worker('merge-worker.js');
     } catch (e) {
       setRunning(false);
-      status('ERROR: no se pudo iniciar el worker de fusión (' + e.message + ')', 'error');
-      line('ERROR: ' + e.message);
+      status(T('errWorkerStart', { m: e.message }), 'error');
+      line(T('errMsg', { m: e.message }));
       if (window.location.protocol === 'file:') {
         line('');
-        line('Estás en file://: Chrome bloquea los Web Workers al abrir páginas con doble clic.');
-        line('Sirve esta carpeta por HTTP para que funcione (por ejemplo: npx serve, Live Server, python -m http.server)');
-        line('o súbela a GitHub Pages.');
+        line(T('fileHint1'));
+        line(T('fileHint2'));
+        line(T('fileHint3'));
       }
       return;
     }
@@ -343,7 +359,7 @@
     w.onmessage = function (e) {
       var m = e.data;
       if (m.t === 'line') { line(m.text); }
-      else if (m.t === 'warn') { line('WARN: ' + m.text); }
+      else if (m.t === 'warn') { line(T('warnPrefix') + m.text); }
       else if (m.t === 'done') {
         w.terminate();
         if (worker === w) worker = null;
@@ -355,7 +371,7 @@
       w.terminate();
       if (worker === w) worker = null;
       setRunning(false);
-      status('ERROR: el worker de fusión falló (' + (e.message || 'desconocido') + ')', 'error');
+      status(T('errWorkerFail', { m: e.message || 'desconocido' }), 'error');
     };
     Promise.all([readBuf(f1), readBuf(f2)]).then(function (bufs) {
       if (!worker) return;
@@ -363,8 +379,8 @@
       w.postMessage({ id: makeId(), f1: bufs[0], f2: bufs[1], mode: mode ? mode.value : 'standard' });
     }).catch(function (e) {
       setRunning(false);
-      status('Error: ' + e.message, 'error');
-      line('ERROR: ' + (e && e.stack ? e.stack : e));
+      status(T('errGen', { m: e.message }), 'error');
+      line(T('errMsg', { m: e && e.stack ? e.stack : e }));
     });
   });
 
@@ -390,20 +406,20 @@
       };
       showResult(job);
       if (st.structural) {
-        status('VERIFICACIÓN SUPERADA (estructural + física viva) — listo para descargar y reproducir en haxball.com.', 'ok');
-        line('RESULTADO: verificada estructuralmente — descarga disponible.');
+        status(T('vOKStd'), 'ok');
+        line(T('resOKStd'));
       } else {
-        status('VERIFICACIÓN SUPERADA (paridad byte-exacta) — listo para descargar.', 'ok');
-        line('RESULTADO: verificada — descarga disponible.');
+        status(T('vOKExact'), 'ok');
+        line(T('resOKExact'));
       }
       window.HBRDB.saveJob(job).catch(function (e) {
-        line('AVISO: no se pudo guardar el trabajo en el navegador (' + e.message + ').');
+        line(T('errNoSave', { m: e.message }));
       });
     } else if (m.ok === false) {
-      status('ERROR: ' + (m.error || 'el merger falló.'), 'error');
-      line('ERROR: la verificación falló o el merger terminó con error.');
+      status(T('errGen', { m: m.error || T('errVerify') }), 'error');
+      line(T('errVerify'));
     } else {
-      status('VERIFICACIÓN FALLIDA — el merge no cumple la verificación. No se entrega archivo.', 'failed');
+      status(T('vFailed'), 'failed');
     }
   }
 
@@ -419,34 +435,30 @@
   function restoreJob(id) {
     jobId = id;
     window.HBRDB.getJob(id).then(function (j) {
-      if (!j) throw new Error('el trabajo ya no existe en este navegador (se borró el historial local)');
+      if (!j) throw new Error(T('errNoJob'));
       var modeEl = document.querySelector('input[name="mode"][value="' + (j.mode || 'standard') + '"]');
       if (modeEl) modeEl.checked = true;
-      if (j.data1) setSlot(1, new File([j.data1], j.name1)); else line('AVISO: no se pudo restaurar la Rec 1.');
-      if (j.data2) setSlot(2, new File([j.data2], j.name2)); else line('AVISO: no se pudo restaurar la Rec 2.');
+      if (j.data1) setSlot(1, new File([j.data1], j.name1)); else line(T('errNoRestore1'));
+      if (j.data2) setSlot(2, new File([j.data2], j.name2)); else line(T('errNoRestore2'));
       (j.lines || []).forEach(function (l) { line(l); });
       if (j.verifyOk) {
         showResult(j);
-        status(j.structural
-          ? 'VERIFICACIÓN SUPERADA (estructural + física viva) — listo para descargar y reproducir en haxball.com.'
-          : 'VERIFICACIÓN SUPERADA (paridad byte-exacta) — listo para descargar.', 'ok');
+        status(j.structural ? T('vOKStd') : T('vOKExact'), 'ok');
       } else {
-        status('VERIFICACIÓN FALLIDA — el merge no cumple la verificación. No se entrega archivo.', 'failed');
+        status(T('vFailed'), 'failed');
       }
     }).then(function () {
-      line('Estado restaurado del trabajo ' + id + ': Rec 1 + Rec 2 cargadas y resultado fusionado disponible.');
+      line(T('restored', { id: id }));
     }).catch(function (e) {
-      line('AVISO: no se pudo restaurar el estado anterior (' + e.message + ').');
+      line(T('errNoRestore', { m: e.message }));
     });
   }
 
   function setLastJobLink(url) {
-    ['navLastJob', 'footLastJob'].forEach(function (id) {
-      var a = document.getElementById(id);
-      if (!a) return;
-      a.href = url;
-      a.hidden = false;
-    });
+    var a = document.getElementById('navLastJob');
+    if (!a) return;
+    a.href = url;
+    a.hidden = false;
   }
 
   var q = new URLSearchParams(window.location.search);
@@ -458,6 +470,14 @@
     window.HBRDB.lastJob().then(function (j) {
       if (j) setLastJobLink('?job=' + encodeURIComponent(j.id));
     }).catch(function () {});
+  }
+
+  var toTop = document.getElementById('toTop');
+  if (toTop) {
+    window.addEventListener('scroll', function () {
+      toTop.classList.toggle('show', window.scrollY > 320);
+    });
+    toTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
   }
 })();
 </script>

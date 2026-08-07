@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reproductor de recs HBR2 (motor patcheado)</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='7' fill='%230b0e14' stroke='%234f8cff' stroke-width='1.5'/><circle cx='8' cy='8' r='2' fill='%23dfe7f5'/></svg>">
+<title data-i18n="pTitle">Reproductor de recs HBR2 (motor patcheado)</title>
+<link rel="icon" href="favicon.ico">
 <link rel="stylesheet" href="vendor/fontello.css">
 <link rel="stylesheet" href="vendor/game.css">
 <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700" rel="stylesheet">
@@ -105,8 +105,8 @@
 </head>
 <body>
 <div id="pick">
-  <h2>Reproductor de recs .hbr2</h2>
-  <p>Este reproductor usa el motor patcheado (<code>game-min_patched.js</code>) que entiende las
+  <h2 data-i18n="pH2">Reproductor de recs .hbr2</h2>
+  <p data-i18n="pDesc">Este reproductor usa el motor patcheado (<code>game-min_patched.js</code>) que entiende las
      acciones de junción <code>Mb</code> que emite el merger. El reproductor estándar de HaxBall
      <b>no</b> puede reproducir un merged con junción de estado (los jugadores se congelan).
      <br><br>Arrastra aquí un <b>.hbr2</b> (por ejemplo el merged descargado) o elígelo:</p>
@@ -114,30 +114,32 @@
 </div>
 <div id="err" style="display:none"></div>
 <div id="container"></div>
-<a class="back" href="./">← Volver al merger</a>
+<a class="back" href="./" data-i18n="pBack">← Volver al merger</a>
 
 <script src="vendor/pako-jszip.min.js"></script>
 <script src="game-min_patched.js"></script>
 <script src="db.js"></script>
+<script src="i18n.js"></script>
 <script>
 (function () {
   'use strict';
+  var T = window.HBRI18N.t;
   var B = window._pxy_B;
   if (!B || !window._pxy_$b) {
-    document.getElementById('err').textContent = 'El motor patcheado no se cargó (window._pxy_B ausente). Haz Ctrl+F5 y vuelve a entrar.';
+    document.getElementById('err').textContent = T('pErrNoEngine');
     document.getElementById('err').style.display = 'block';
     return;
   }
 
   function err(msg) {
     var el = document.getElementById('err');
-    el.textContent = 'ERROR: ' + msg;
+    el.textContent = T('pErrPrefix') + msg;
     el.style.display = 'block';
     document.getElementById('pick').style.display = 'flex';
   }
 
   window.addEventListener('error', function (e) {
-    if (e && e.message) err('excepción no controlada: ' + e.message);
+    if (e && e.message) err(T('pErrUncaught', { m: e.message }));
   });
 
   // --- Sonido (igual que el reproductor oficial) ---
@@ -164,11 +166,11 @@
   loadSound();
 
   function playBytes(bytes) {
-    if (!bytes || bytes.length < 12) throw new Error('archivo demasiado corto');
+    if (!bytes || bytes.length < 12) throw new Error(T('pErrShort'));
     var dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    if (dv.getUint32(0, false) !== 0x48425232) throw new Error('no es un .hbr2 (magic HBR2 no encontrado)');
+    if (dv.getUint32(0, false) !== 0x48425232) throw new Error(T('pErrNotHbr2'));
     var ver = dv.getUint32(4, false);
-    if (ver !== 3) throw new Error('versión de replay no soportada: ' + ver + ' (se espera 3)');
+    if (ver !== 3) throw new Error(T('pErrVersion', { v: ver }));
     document.getElementById('pick').style.display = 'none';
     // Mismo wiring que Bb.Xo(), pero exponiendo la rep y la vista para ?seek= y depuración.
     var rep = new window._pxy_$b(new Uint8Array(bytes), new window._pxy_va, 3);
@@ -193,7 +195,7 @@
         }
         window._pxy_lastUb = ub;
       }
-      catch (e) { if (!window._pxy_vf) { window._pxy_vf = true; err('fallo de render (frame ' + rep.Y + '): ' + (e && e.message || e) + (e && e.stack ? '\n' + e.stack.split('\n').slice(0, 3).join('\n') : '')); } }
+      catch (e) { if (!window._pxy_vf) { window._pxy_vf = true; err(T('pErrRender', { f: rep.Y, m: (e && e.message || e) + (e && e.stack ? '\n' + e.stack.split('\n').slice(0, 3).join('\n') : '') })); } }
     };
     view.te.oe = function () { view.la(); };
     window._pxy_C.Oa(view.l.f);
@@ -223,7 +225,7 @@
   function loadFile(file) {
     var rd = new FileReader();
     rd.onload = function () { try { playBytes(new Uint8Array(rd.result)); } catch (e) { err(e.message || e); } };
-    rd.onerror = function () { err('no se pudo leer el archivo'); };
+    rd.onerror = function () { err(T('pErrRead')); };
     rd.readAsArrayBuffer(file);
   }
 
@@ -235,7 +237,7 @@
   if (job) {
     // En la versión estática el merged se lee de IndexedDB (no hay /api/download/:id).
     window.HBRDB.getJob(job).then(function (j) {
-      if (!j || !j.merged) throw new Error('el trabajo no existe en este navegador (se borró el historial local)');
+      if (!j || !j.merged) throw new Error(T('pErrNoJob'));
       playBytes(j.merged);
     }).catch(function (e) { err(e.message || e); });
   } else {

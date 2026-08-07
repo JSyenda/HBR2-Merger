@@ -68,7 +68,10 @@
   .actions.modes label { display:inline-flex; gap:6px; align-items:center; cursor:pointer; font-size:13px; }
   .spacer { flex:1; }
   .tablewrap { overflow-x:auto; }
-  td:last-child { white-space:nowrap; }
+  td:last-child { white-space:nowrap; text-align:right; }
+  th:nth-child(1), td:nth-child(1) { width:150px; }
+  th:nth-child(2), td:nth-child(2) { width:42%; }
+  th:nth-child(3), td:nth-child(3) { width:70px; }
   pre#log { background:#0a0f1a; border:1px solid var(--line); border-radius:8px; padding:12px; font:12px/1.5 Consolas,'Cascadia Mono',monospace; max-height:340px; overflow:auto; white-space:pre-wrap; word-break:break-all; }
   #status { min-height:20px; font-size:14px; margin-top:6px; }
   #status.running { color:var(--warn); }

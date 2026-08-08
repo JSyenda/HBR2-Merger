@@ -1,5 +1,5 @@
 'use strict';
-var CACHE = 'hbr2-merger-v2';
+var CACHE = 'hbr2-merger-v3';
 var BASE = (function () {
   var p = self.location.pathname;
   var i = p.lastIndexOf('/');
@@ -55,34 +55,18 @@ self.addEventListener('fetch', function (e) {
   if (req.method !== 'GET') return;
   var url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
-  if (req.mode === 'navigate') {
-    // Network-first: contenido siempre fresco en línea; caché solo como respaldo
-    // (evita servir respuestas cacheadas defectuosas que producen ERR_FAILED).
-    e.respondWith(fetch(req).then(function (res) {
-      if (res && res.ok) {
-        var key = navCacheKey(url.pathname);
-        if (key) {
-          var copy = res.clone();
-          caches.open(CACHE).then(function (c) { c.put(new Request(key), copy); }).catch(function () {});
-        }
-      }
-      return res;
-    }).catch(function () {
-      var key = navCacheKey(url.pathname);
-      if (!key) return Response.error();
-      return caches.match(key).then(function (hit) { return hit || Response.error(); });
-    }));
-    return;
-  }
-  e.respondWith(caches.match(req).then(function (hit) {
-    if (hit) return hit;
-    return fetch(req).then(function (res) {
-      if (res && res.ok) {
-        var key = stripQuery(req.url);
+  // Network-first: contenido siempre fresco en línea; la caché solo como respaldo
+  // (evita servir assets cacheados viejos que rompen index/player recién desplegados).
+  e.respondWith(fetch(req).then(function (res) {
+    if (res && res.ok) {
+      var key = req.mode === 'navigate' ? navCacheKey(url.pathname) : stripQuery(req.url);
+      if (key) {
         var copy = res.clone();
         caches.open(CACHE).then(function (c) { c.put(new Request(key), copy); }).catch(function () {});
       }
-      return res;
-    });
-  }).catch(function () { return fetch(req); }));
+    }
+    return res;
+  }).catch(function () {
+    return caches.match(req).then(function (hit) { return hit || Response.error(); });
+  }));
 });

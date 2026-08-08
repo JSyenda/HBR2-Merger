@@ -77,9 +77,6 @@
   tr[draggable="true"] { cursor:grab; }
   tr[draggable="true"]:active { cursor:grabbing; }
   tr.drag-over td { background:rgba(79,140,255,.08); }
-  input.trim { width:64px; background:var(--panel2); border:1px solid var(--line); color:var(--txt); border-radius:6px; padding:4px 6px; font-size:12px; }
-  input.trim.invalid { border-color:var(--bad, #ff5a5a); box-shadow:0 0 0 1px var(--bad, #ff5a5a); }
-  input.trim:disabled { opacity:.4; cursor:not-allowed; }
   tr.ph td { color:var(--mut); opacity:.55; }
   .btn { background:var(--panel2); color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:9px 14px; font-size:14px; cursor:pointer; font-family:inherit; }
   .btn:hover:not(:disabled) { border-color:var(--acc); }
@@ -115,6 +112,8 @@
   .ks-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin-top:10px; font-size:13px; }
   .ks-row .k { display:inline-flex; align-items:center; justify-content:center; min-width:26px; height:24px; padding:0 6px; border:1px solid var(--line); border-bottom-width:2px; border-radius:6px; background:var(--panel2); color:var(--acc); font-weight:700; font-family:Consolas,'Cascadia Mono',monospace; font-size:12px; }
   .ks-row .sep { width:1px; height:16px; background:var(--line); }
+  /* Los atajos de teclado solo aportan en escritorio. */
+  @media (max-width:1024px) { .card.ks { display:none; } }
   #spinner { display:none; width:16px; height:16px; border:2px solid var(--line); border-top-color:var(--warn); border-radius:50%; animation:spin .8s linear infinite; }
   #spinner.on { display:inline-block; vertical-align:-3px; }
   @keyframes spin { to { transform:rotate(360deg); } }
@@ -204,6 +203,10 @@
     Une varias grabaciones de Haxball (<code>.hbr2</code>) en una sola, encadenadas de 2 en 2.
   </div>
 
+  <div class="localnote" data-i18n="localnote">
+    Todo se procesa <b>íntegramente en tu navegador</b>: los archivos no se suben a ningún servidor y las recs quedan guardadas localmente (se restauran con el enlace <code>?job=…</code>).
+  </div>
+
   <div class="card ks">
     <div class="actions">
       <b data-i18n="ksTitle">Atajos de teclado</b>
@@ -217,10 +220,6 @@
       <span class="sep" aria-hidden="true"></span>
       <span class="k" data-i18n="ksT">T</span><span data-i18n="ksTheme">Cambiar tema</span>
     </div>
-  </div>
-
-  <div class="localnote" data-i18n="localnote">
-    Todo se procesa <b>íntegramente en tu navegador</b>: los archivos no se suben a ningún servidor y las recs quedan guardadas localmente (se restauran con el enlace <code>?job=…</code>).
   </div>
 
   <div class="warnbar" id="filewarn" data-i18n="filewarn"><b>Estás abriendo este archivo con doble clic (protocolo <code>file://</code>).</b> Chrome bloquea los Web Workers en <code>file://</code>, así que la fusión no puede arrancar. Ábrelo a través de un servidor local (por ejemplo <code>npx serve</code>, la extensión "Live Server" de VS Code o <code>python -m http.server</code> dentro de esta carpeta) o súbelo a GitHub Pages, que es para lo que está preparado.</div>
@@ -244,7 +243,7 @@
   <div class="card">
     <div class="tablewrap">
     <table>
-      <thead><tr><th data-i18n="colPos">Posición</th><th data-i18n="colFile">Archivo</th><th data-i18n="colSize">Tamaño</th><th data-i18n="durCol">Duración</th><th data-i18n="trimColStart">Inicio −</th><th data-i18n="trimColEnd">Fin −</th><th></th></tr></thead>
+      <thead><tr><th data-i18n="colPos">Posición</th><th data-i18n="colFile">Archivo</th><th data-i18n="colSize">Tamaño</th><th data-i18n="durCol">Duración</th><th></th></tr></thead>
       <tbody id="rows"></tbody>
     </table>
     </div>
@@ -257,7 +256,7 @@
       <div class="spacer"></div>
       <button class="btn primary" id="go" data-i18n="mergeBtn">Fusionar</button>
     </div>
-    <div class="callout" id="swapInfoBox" data-i18n="swapInfoText" hidden>Si la fusión falla o la rec resultante no se reproduce, prueba a intercambiar el orden de las grabaciones: a veces, empezar por la otra rec hace que el fusionador complete el proceso correctamente.<hr>If the merge fails or the resulting rec does not play, try swapping the order of the recordings: sometimes, starting with the other rec makes the merger complete the process correctly.<hr>Arrastra las filas para cambiar el orden.<br>Recorta segundos del inicio o del final de cada rec en formato <b>mm:ss</b>. Útil para quitar tiempo muerto o solapamientos antes de fusionar.</div>
+    <div class="callout" id="swapInfoBox" data-i18n="swapInfoText" hidden>Si la fusión falla o la rec resultante no se reproduce, prueba a intercambiar el orden de las grabaciones: a veces, empezar por la otra rec hace que el fusionador complete el proceso correctamente.</div>
   </div>
 
   <div class="card">
@@ -346,33 +345,6 @@
     return el;
   }
 
-  function fmtTrim(sec) {
-    sec = Math.max(0, sec || 0);
-    var m = Math.floor(sec / 60), s = Math.round(sec % 60);
-    if (s === 60) { m++; s = 0; }
-    return m + ':' + (s < 10 ? '0' : '') + s;
-  }
-
-  function parseTrim(str) {
-    if (str == null) return 0;
-    str = String(str).trim();
-    if (str === '') return 0;
-    var m = /^(\d{1,2}):(\d{2})$/.exec(str);
-    if (!m) return NaN;
-    return (+m[1]) * 60 + (+m[2]);
-  }
-
-  function mkTrim(i, role, val, disabled) {
-    var inp = document.createElement('input');
-    inp.type = 'text'; inp.inputMode = 'numeric';
-    inp.className = 'trim'; inp.dataset.i = i; inp.dataset.role = role;
-    inp.placeholder = '0:00';
-    inp.value = fmtTrim(val || 0);
-    inp.disabled = disabled;
-    inp.title = T(role === 'start' ? 'trimColStart' : 'trimColEnd');
-    return inp;
-  }
-
   function renderTable() {
     tb.innerHTML = '';
     if (!recs.length) {
@@ -381,8 +353,6 @@
         ptr.className = 'ph';
         ptr.appendChild(mk('td', 'slot', p === 0 ? T('slot1') : T('slot2')));
         ptr.appendChild(mk('td', 'name'));
-        ptr.appendChild(mk('td'));
-        ptr.appendChild(mk('td'));
         ptr.appendChild(mk('td'));
         ptr.appendChild(mk('td'));
         ptr.appendChild(mk('td'));
@@ -405,8 +375,6 @@
       tr.appendChild(tdName);
       tr.appendChild(mk('td', null, fmt(r.file.size)));
       tr.appendChild(mk('td', 'dur', r.dur != null ? fmtDur(r.dur) : '…'));
-      var td5 = mk('td'); td5.appendChild(mkTrim(i, 'start', r.trimStart, i === 0)); tr.appendChild(td5);
-      var td6 = mk('td'); td6.appendChild(mkTrim(i, 'end', r.trimEnd, false)); tr.appendChild(td6);
       var td7 = mk('td');
       var rm = mk('button', 'btn small', T('remBtn'));
       rm.type = 'button'; rm.dataset.rm = i;
@@ -493,30 +461,6 @@
   });
   document.addEventListener('drop', function (e) {
     if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
-  });
-
-  tb.addEventListener('input', function (e) {
-    var el = e.target;
-    if (!el.classList || !el.classList.contains('trim')) return;
-    var r = recs[+el.dataset.i];
-    if (!r) return;
-    var raw = el.value.replace(/[^\d:]/g, '');
-    if (el.value !== raw) el.value = raw;
-    var sec = parseTrim(raw);
-    var ok = !isNaN(sec);
-    el.classList.toggle('invalid', !ok);
-    if (ok) {
-      if (el.dataset.role === 'start') r.trimStart = sec; else r.trimEnd = sec;
-    }
-  });
-
-  tb.addEventListener('change', function (e) {
-    var el = e.target;
-    if (!el.classList || !el.classList.contains('trim')) return;
-    var sec = parseTrim(el.value);
-    if (isNaN(sec)) sec = 0;
-    el.classList.remove('invalid');
-    el.value = fmtTrim(sec);
   });
 
   tb.addEventListener('click', function (e) {

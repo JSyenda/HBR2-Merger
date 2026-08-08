@@ -8,7 +8,7 @@
     es: {
       lastRecTitle: 'Restaurar la última rec (?job=…)',
       lastRec: 'Última rec',
-      intro: 'Une varias grabaciones de Haxball (<code>.hbr2</code>) en una sola, encadenadas de 2 en 2.<br><b>Modo Estándar</b> <em>(recomendado)</em>: crea una rec normal que se puede ver en cualquier reproductor, incluido <b>haxball.com</b>.<br><b>Modo Exacto</b>: conserva la posición exacta de los jugadores al fusionar. Nota: es posible que solo se pueda ver con el reproductor de esta web.<br><em>Orden: Rec inicial + Rec 2 + … + Rec final</em>.',
+      intro: 'Une varias grabaciones de Haxball (<code>.hbr2</code>) en una sola, encadenadas de 2 en 2.<hr><b>Modo Estándar</b> <em>(recomendado)</em>: crea una rec normal que se puede ver en cualquier reproductor, incluido <b>haxball.com</b>.<br><b>Modo Exacto</b>: conserva la posición exacta de los jugadores al fusionar. Nota: es posible que solo se pueda ver con el reproductor de esta web.<hr><em>Orden: Rec inicial + Rec 2 + … + Rec final</em>.',
       localnote: 'Todo se procesa <b>íntegramente en tu navegador</b>: los archivos no se suben a ningún servidor y las recs quedan guardadas localmente (se restauran con el enlace <code>?job=…</code>).',
       filewarn: 'Estás abriendo este archivo con doble clic (protocolo <code>file://</code>). Chrome bloquea los Web Workers en <code>file://</code>, así que la fusión no puede arrancar. Ábrelo a través de un servidor local (por ejemplo <code>npx serve</code>, la extensión "Live Server" de VS Code o <code>python -m http.server</code> dentro de esta carpeta) o súbelo a GitHub Pages, que es para lo que está preparado.',
       dropMain: 'Arrastra aquí tus recs <b>.hbr2</b> (2 o más) o haz clic para elegirlas.',
@@ -137,7 +137,7 @@
     en: {
       lastRecTitle: 'Restore last rec (?job=…)',
       lastRec: 'Last rec',
-      intro: 'Combine multiple Haxball recordings (<code>.hbr2</code>) into a single one, chained two by two.<br><b>Standard Mode</b> <em>(recommended)</em>: produces a normal replay that plays on any player, including <b>haxball.com</b>.<br><b>Exact Mode</b>: keeps the exact player positions when merging. Note: it may only be playable with this site\'s player.<br><em>Order: Initial rec + Rec 2 + … + Final rec</em>.',
+      intro: 'Combine multiple Haxball recordings (<code>.hbr2</code>) into a single one, chained two by two.<hr><b>Standard Mode</b> <em>(recommended)</em>: produces a normal replay that plays on any player, including <b>haxball.com</b>.<br><b>Exact Mode</b>: keeps the exact player positions when merging. Note: it may only be playable with this site\'s player.<hr><em>Order: Initial rec + Rec 2 + … + Final rec</em>.',
       localnote: 'Everything is processed <b>entirely in your browser</b>: files are never uploaded to any server and recs are kept locally (restore them with the <code>?job=…</code> link).',
       filewarn: 'You are opening this file by double-clicking (<code>file://</code> protocol). Chrome blocks Web Workers on <code>file://</code>, so the merge cannot start. Open it through a local server (e.g. <code>npx serve</code>, the VS Code "Live Server" extension or <code>python -m http.server</code> in this folder) or upload it to GitHub Pages, which is what it is prepared for.',
       dropMain: 'Drag your <b>.hbr2</b> recs here (2 or more) or click to choose them.',

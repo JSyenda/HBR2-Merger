@@ -113,18 +113,13 @@
     border-radius:4px; border:1px solid var(--line); }
   a.back:hover { color:#8ab4ff; border-color:var(--acc); }
 
-  /* --- barra de utilidades (paso de frame) + botón mostrar/ocultar --- */
+  /* --- barra de utilidades (mostrar/ocultar) + botón mostrar/ocultar --- */
   /* Colocada en la esquina inferior derecha para no tapar el chat (que vive abajo a la izquierda). */
   #pxyWrap { position:fixed; bottom:60px; right:14px; left:auto; z-index:70;
     display:flex; align-items:center; gap:8px; }
   #pxyBar { display:flex; align-items:center; gap:6px; background:rgba(13,17,25,.94);
     border:1px solid var(--line); border-radius:12px; padding:6px 8px; box-shadow:0 6px 20px rgba(0,0,0,.4);
     flex-wrap:nowrap; }
-  #pxyBar .step { display:inline-flex; align-items:center; gap:5px; background:var(--panel2); color:var(--txt);
-    border:1px solid var(--line); border-radius:7px; padding:4px 9px; font-size:12px; cursor:pointer; font-family:inherit;
-    white-space:nowrap; }
-  #pxyBar .step:hover { border-color:var(--acc); }
-  #pxyBar .step svg { width:13px; height:13px; flex:none; }
   #pxyToggle { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px;
     background:rgba(13,17,25,.85); color:var(--txt); border:1px solid var(--line); border-radius:10px;
     cursor:pointer; font-family:inherit; }
@@ -171,8 +166,6 @@
     .replay-controls-view .timebar { min-width:60px; }
     /* En móvil la barra se compacta (solo iconos) y sigue anclada a la derecha. */
     #pxyWrap { bottom:56px; right:8px; left:auto; }
-    #pxyBar .step span { display:none; }
-    #pxyBar .step { padding:6px 9px; }
   }
   @media (max-width:360px) {
     /* Pantallas muy pequeñas: se oculta el marcador superior (el tiempo también se
@@ -203,16 +196,7 @@
 <div id="container"></div>
 <a class="back" href="./" data-i18n="pBack">← Volver al merger</a>
 <div id="pxyWrap" hidden>
-  <div id="pxyBar">
-    <button class="step" type="button" id="stepBack" data-i18n-title="pStepBack">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 5h2v14H5zm14.5 0v14l-9-7z"/></svg>
-      <span data-i18n="pStepBack">Retroceder 1 frame</span>
-    </button>
-    <button class="step" type="button" id="stepFwd" data-i18n-title="pStepFwd">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 5h2v14h-2zM4.5 5v14l9-7z"/></svg>
-      <span data-i18n="pStepFwd">Avanzar 1 frame</span>
-    </button>
-  </div>
+  <div id="pxyBar"></div>
   <button id="pxyToggle" type="button" data-i18n-title="pToggle" aria-pressed="false">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
   </button>
@@ -232,12 +216,6 @@
     document.getElementById('err').style.display = 'block';
     return;
   }
-
-  // Keyframes: snapshots periódicos del estado de decodificación para retroceder
-  // sin re-decodificar la rec desde el inicio (un retroceso en recs de horas
-  // tardaría segundos con Qr(), que reinicia y avanza 10 s por tick de RAF).
-  var KF_INT = 10000;
-  var pxyKf = null;
 
   function err(msg) {
     var el = document.getElementById('err');
@@ -286,15 +264,6 @@
     window._pxy_rep = rep;
     window._pxy_view = view;
     window._pxy_lastUb = -1;
-    // Keyframe inicial (frame 0) y relleno del cache durante reproducción/seeks.
-    pxyKf = window._pxy_kf = [seedKf(rep)];
-    var teA = view.te.A.bind(view.te);
-    if (typeof teA === 'function') {
-      view.te.A = function () {
-        teA();
-        snapShotDuring(rep);
-      };
-    }
     // Si el render falla en algún frame, mostrarlo en pantalla en lugar de quedarse en negro
     // (el _pxyV() del motor se traga el error y deja el canvas sin pintar).
     view._pxyV = function () {
@@ -321,92 +290,11 @@
     seekOnLoad();
   }
 
-  function seedKf(rep) {
-    var w = window._pxy_mod.A.ka();
-    rep.T.ha(w);
-    return { Y: rep.Y, Ub: rep.Ub, Nk: rep.Nk, Sc_a: rep.Sc.a, vg: rep.vg, bytes: w.Vg() };
-  }
-
-  function snapShotDuring(rep) {
-    if (!pxyKf) return;
-    var n = pxyKf.length;
-    if (n && rep.Y - pxyKf[n - 1].Y < KF_INT) return;
-    try { pxyKf.push(seedKf(rep)); } catch (e) {}
-  }
-
-  function kfRestore(rep, k) {
-    rep.T.na(new window._pxy_mod.J(new DataView(k.bytes)));
-    rep.Y = k.Y; rep.Ub = k.Ub; rep.Nk = k.Nk; rep.vg = k.vg; rep.Sc.a = k.Sc_a;
-    if (0 < rep.Sc.s.byteLength - rep.Sc.a) {
-      rep.Sc.Bb();
-      var P = rep.Sc.Sb();
-      rep.ug = window._pxy_mod.p.Jj(rep.Sc);
-      rep.ug.P = P;
-    } else {
-      rep.ug = null;
-    }
-    window._pxy_ua.Dc++;
-  }
-
-  function stepBackTo(rep, target) {
-    var targetFrame = target / rep.uh;
-    var k = null, i;
-    for (i = 0; i < pxyKf.length; i++) {
-      if (pxyKf[i].Y <= targetFrame) k = pxyKf[i]; else break;
-    }
-    if (k && targetFrame - k.Y <= KF_INT * 2) {
-      try {
-        kfRestore(rep, k);
-        rep.Ub = target;
-        rep.hi = window.performance.now();
-        rep.A();
-        snapShotDuring(rep);
-        return;
-      } catch (e) {}
-    }
-    // Cache demasiado disperso: reinicio y re-decodifico generando keyframes al vuelo.
-    rep.Qr(target);
-    var guard = 0;
-    while (rep.Pd > 0 && guard < 200000) {
-      rep.A();
-      snapShotDuring(rep);
-      guard++;
-    }
-  }
-
-  function stepFrame(dir) {
-    var rep = window._pxy_rep, view = window._pxy_view;
-    if (!rep || !view || !view.te || !view.te.f) return;
-    var playIcon = view.te.f.querySelector('[data-hook=playicon]');
-    if (playIcon && playIcon.classList.contains('icon-pause')) {
-      var playBtn = view.te.f.querySelector('[data-hook=play]');
-      if (playBtn) { try { playBtn.click(); } catch (e) {} }
-    }
-    if (rep.Pd > 0) rep.Pd = -1;
-    var total = rep.Bf * rep.uh;
-    var target = rep.Ub + dir * rep.uh;
-    if (target < 0) target = 0;
-    if (target > total) target = total;
-    if (dir < 0 && target < rep.Ub) {
-      stepBackTo(rep, target);
-    } else {
-      rep.Ub = target;
-      rep.hi = window.performance.now();
-      rep.A();
-    }
-    try { view.l.A(rep); } catch (e) {}
-    window._pxy_lastUb = rep.Ub;
-  }
-
   function wirePxyBar() {
     var wrap = document.getElementById('pxyWrap');
     if (!wrap || !window._pxy_view || !window._pxy_view.te) return;
     wrap.hidden = false;
     initPxyToggle();
-    var back = document.getElementById('stepBack');
-    var fwd = document.getElementById('stepFwd');
-    if (back) back.addEventListener('click', function () { stepFrame(-1); });
-    if (fwd) fwd.addEventListener('click', function () { stepFrame(1); });
   }
 
   function initPxyToggle() {

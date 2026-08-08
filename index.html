@@ -112,8 +112,9 @@
   .report pre { background:var(--codebg); border:1px solid var(--line); border-radius:8px; padding:12px; font:12px/1.5 Consolas,'Cascadia Mono',monospace; color:var(--txt); white-space:pre-wrap; }
   .hint { color:var(--mut); font-size:12px; margin-top:8px; }
   .card.ks { padding:14px 18px; }
-  .ks-grid { display:grid; grid-template-columns:auto 1fr; gap:8px 14px; align-items:center; margin-top:10px; font-size:13px; }
-  .ks-grid .k { display:inline-flex; align-items:center; justify-content:center; min-width:26px; height:24px; padding:0 6px; border:1px solid var(--line); border-bottom-width:2px; border-radius:6px; background:var(--panel2); color:var(--acc); font-weight:700; font-family:Consolas,'Cascadia Mono',monospace; font-size:12px; }
+  .ks-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin-top:10px; font-size:13px; }
+  .ks-row .k { display:inline-flex; align-items:center; justify-content:center; min-width:26px; height:24px; padding:0 6px; border:1px solid var(--line); border-bottom-width:2px; border-radius:6px; background:var(--panel2); color:var(--acc); font-weight:700; font-family:Consolas,'Cascadia Mono',monospace; font-size:12px; }
+  .ks-row .sep { width:1px; height:16px; background:var(--line); }
   #spinner { display:none; width:16px; height:16px; border:2px solid var(--line); border-top-color:var(--warn); border-radius:50%; animation:spin .8s linear infinite; }
   #spinner.on { display:inline-block; vertical-align:-3px; }
   @keyframes spin { to { transform:rotate(360deg); } }
@@ -203,6 +204,21 @@
     Une varias grabaciones de Haxball (<code>.hbr2</code>) en una sola, encadenadas de 2 en 2.
   </div>
 
+  <div class="card ks">
+    <div class="actions">
+      <b data-i18n="ksTitle">Atajos de teclado</b>
+    </div>
+    <div class="ks-row">
+      <span class="k" data-i18n="ksI">I</span><span data-i18n="ksSwap">Intercambiar orden</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span class="k" data-i18n="ksM">M</span><span data-i18n="ksMerge">Fusionar</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span class="k" data-i18n="ksA">A</span><span data-i18n="ksAdd">Añadir recs</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span class="k" data-i18n="ksT">T</span><span data-i18n="ksTheme">Cambiar tema</span>
+    </div>
+  </div>
+
   <div class="localnote" data-i18n="localnote">
     Todo se procesa <b>íntegramente en tu navegador</b>: los archivos no se suben a ningún servidor y las recs quedan guardadas localmente (se restauran con el enlace <code>?job=…</code>).
   </div>
@@ -241,7 +257,7 @@
       <div class="spacer"></div>
       <button class="btn primary" id="go" data-i18n="mergeBtn">Fusionar</button>
     </div>
-    <div class="callout" id="swapInfoBox" data-i18n="swapInfoText" hidden>Si la fusión falla o la rec resultante no se reproduce, prueba a intercambiar el orden de las grabaciones: a veces, empezar por la otra rec hace que el fusionador complete el proceso correctamente.<hr>Arrastra las filas para cambiar el orden.<br>Recorta segundos del inicio o del final de cada rec en formato <b>mm:ss</b>. Útil para quitar tiempo muerto o solapamientos antes de fusionar.</div>
+    <div class="callout" id="swapInfoBox" data-i18n="swapInfoText" hidden>Si la fusión falla o la rec resultante no se reproduce, prueba a intercambiar el orden de las grabaciones: a veces, empezar por la otra rec hace que el fusionador complete el proceso correctamente.<hr>If the merge fails or the resulting rec does not play, try swapping the order of the recordings: sometimes, starting with the other rec makes the merger complete the process correctly.<hr>Arrastra las filas para cambiar el orden.<br>Recorta segundos del inicio o del final de cada rec en formato <b>mm:ss</b>. Útil para quitar tiempo muerto o solapamientos antes de fusionar.</div>
   </div>
 
   <div class="card">
@@ -251,18 +267,6 @@
       <label><input type="radio" name="mode" value="exact"> <span data-i18n="modeExact">Exacto (motor patcheado)</span></label>
     </div>
     <div class="hint" data-i18n="modeHint">En caso de que no funcione el <b>Modo Estándar</b>, prueba con el <b>Modo Exacto</b>. Ten en cuenta que puede llegar a fallar.</div>
-  </div>
-
-  <div class="card ks">
-    <div class="actions">
-      <b data-i18n="ksTitle">Atajos de teclado</b>
-    </div>
-    <div class="ks-grid">
-      <span class="k" data-i18n="ksI">I</span><span data-i18n="ksSwap">Intercambiar orden</span>
-      <span class="k" data-i18n="ksM">M</span><span data-i18n="ksMerge">Fusionar</span>
-      <span class="k" data-i18n="ksA">A</span><span data-i18n="ksAdd">Añadir recs</span>
-      <span class="k" data-i18n="ksT">T</span><span data-i18n="ksTheme">Cambiar tema</span>
-    </div>
   </div>
 
   <div class="card">

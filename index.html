@@ -236,6 +236,12 @@
       <span class="k" data-i18n="ksA">A</span><span data-i18n="ksAdd">Añadir recs</span>
       <span class="sep" aria-hidden="true"></span>
       <span class="k" data-i18n="ksT">T</span><span data-i18n="ksTheme">Cambiar tema</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span class="k" data-i18n="ksR">R</span><span data-i18n="ksPlay">Reproducir en el player</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span class="k" data-i18n="ksN">N</span><span data-i18n="ksName">Cambiar nombre</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span class="k" data-i18n="ksD">D</span><span data-i18n="ksDownload">Descargar</span>
     </div>
   </div>
 
@@ -856,6 +862,9 @@
     else if (k === 'm') { e.preventDefault(); $('go').click(); }
     else if (k === 'a') { e.preventDefault(); fi.click(); }
     else if (k === 't') { e.preventDefault(); $('themeBtn').click(); }
+    else if (k === 'r') { var p = document.querySelector('#download .dl-play'); if (p) { e.preventDefault(); p.click(); } }
+    else if (k === 'n') { var inp = document.getElementById('outName'); if (inp) { e.preventDefault(); inp.focus(); } }
+    else if (k === 'd') { var a = document.querySelector('#download .dl-link'); if (a) { e.preventDefault(); a.click(); } }
   });
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {

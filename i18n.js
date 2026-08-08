@@ -245,11 +245,9 @@
 
   var LANGS = {
     es: {
-      name: 'Español',
       flag: '<svg viewBox="0 0 24 16" aria-hidden="true"><rect width="24" height="16" fill="#AA151B"/><rect y="4" width="24" height="8" fill="#F1BF00"/></svg>'
     },
     en: {
-      name: 'English',
       flag: '<svg viewBox="0 0 12 8" aria-hidden="true"><rect width="12" height="8" fill="#00247D"/><path fill="none" stroke="#FFFFFF" stroke-width="1.8" d="M0 0l6 4 6-4M0 8l6-4 6 4"/><path fill="none" stroke="#CF142B" stroke-width="0.9" d="M0 0l6 4 6-4M0 8l6-4 6 4"/><path fill="none" stroke="#FFFFFF" stroke-width="1.8" d="M0 4h12M6 0v8"/><path fill="none" stroke="#CF142B" stroke-width="0.9" d="M0 4h12M6 0v8"/></svg>'
     }
   };
@@ -299,15 +297,11 @@
     });
     var meta = LANGS[LANG] || LANGS.es;
     var curFlag = document.getElementById('langCurFlag');
-    var curName = document.getElementById('langCurName');
     if (curFlag) curFlag.innerHTML = meta.flag;
-    if (curName) curName.textContent = meta.name;
     document.querySelectorAll('#langMenu [data-lang]').forEach(function (b) {
       var flag = b.querySelector('.flag');
-      var name = b.querySelector('.lname');
       var m = LANGS[b.getAttribute('data-lang')];
       if (flag && m) flag.innerHTML = m.flag;
-      if (name && m) name.textContent = m.name;
       b.classList.toggle('active', b.getAttribute('data-lang') === LANG);
     });
   }

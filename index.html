@@ -41,7 +41,7 @@
   .lang-dd-btn svg { width:15px; height:15px; flex:none; }
   #themeBtn { color:var(--acc); }
   #themeBtn svg { width:17px; height:17px; }
-  .lang-dd-menu { position:absolute; top:calc(100% + 4px); left:0; z-index:80; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:4px; min-width:150px; box-shadow:0 6px 20px rgba(0,0,0,.5); }
+  .lang-dd-menu { position:absolute; top:calc(100% + 4px); left:0; z-index:80; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:4px; min-width:60px; box-shadow:0 6px 20px rgba(0,0,0,.5); }
   .lang-dd-menu button { display:flex; align-items:center; gap:8px; width:100%; background:none; border:none; color:var(--txt); font-size:13px; padding:8px 10px; border-radius:6px; cursor:pointer; font-family:inherit; text-align:left; }
   .lang-dd-menu button:hover { background:var(--panel2); }
   .lang-dd-menu button.active { color:var(--acc); }
@@ -182,12 +182,10 @@
       <div class="lang-dd" id="langDD">
         <button type="button" class="lang-dd-btn" id="langBtn" data-i18n-title="langTitle" aria-haspopup="listbox" aria-expanded="false">
           <span class="flag" id="langCurFlag"></span>
-          <span id="langCurName"></span>
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         <div class="lang-dd-menu" id="langMenu" role="listbox" hidden>
-          <button type="button" role="option" data-lang="es"><span class="flag"></span><span class="lname"></span></button>
-          <button type="button" role="option" data-lang="en"><span class="flag"></span><span class="lname"></span></button>
+          <button type="button" role="option" data-lang="es"><span class="flag"></span></button>
+          <button type="button" role="option" data-lang="en"><span class="flag"></span></button>
         </div>
       </div>
       <a class="discord" href="https://discord.gg/r4TFnVPEXw" target="_blank" rel="noopener">

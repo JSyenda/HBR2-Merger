@@ -142,15 +142,14 @@
     .nav-menu-btn { display:inline-flex; }
     /* El resto de la navbar va en un desplegable (menú hamburguesa), deslizable si no cabe. */
     .nav-links { position:absolute; top:calc(100% + 4px); right:0; z-index:80; flex-direction:column;
-      align-items:stretch; gap:6px; width:max-content; min-width:190px; background:var(--panel);
+      align-items:stretch; gap:6px; width:max-content; background:var(--panel);
       border:1px solid var(--line); border-radius:10px; padding:8px; box-shadow:0 6px 20px rgba(0,0,0,.5);
       max-height:calc(100dvh - 70px); overflow-y:auto; flex-wrap:nowrap; display:none; }
     header.nav.nav-open .nav-links { display:flex; }
     #navLastJob, #myJobsBtn, #langDD { display:inline-flex; }
-    .nav-links > * { width:100%; }
+    .nav-job span, #myJobsBtn span { display:none; }
     .nav-links .nav-job, .nav-links .lang-dd-btn { justify-content:center; }
-    .nav-links #langBtn { width:100%; }
-    .nav-job, .lang-dd-btn { padding:7px 8px; }
+    .nav-job, .lang-dd-btn { padding:6px 8px; }
     .wrap > .discord { padding:8px 12px; }
     .actions { gap:8px; }
     .actions.modes { flex-direction:column; align-items:flex-start; }

@@ -236,6 +236,8 @@
       <div class="ks-item"><span class="k" data-i18n="ksR">R</span><span data-i18n="ksPlay">Reproducir en el player</span></div>
       <div class="ks-item"><span class="k" data-i18n="ksN">N</span><span data-i18n="ksName">Cambiar nombre</span></div>
       <div class="ks-item"><span class="k" data-i18n="ksD">D</span><span data-i18n="ksDownload">Descargar</span></div>
+      <div class="ks-item"><span class="k" data-i18n="ksC">C</span><span data-i18n="ksCopy">Copiar enlace</span></div>
+      <div class="ks-item"><span class="k" data-i18n="ksO">O</span><span data-i18n="ksJobs">Mis fusiones</span></div>
     </div>
   </div>
 
@@ -859,6 +861,8 @@
     else if (k === 'r') { var p = document.querySelector('#download .dl-play'); if (p) { e.preventDefault(); p.click(); } }
     else if (k === 'n') { var inp = document.getElementById('outName'); if (inp) { e.preventDefault(); inp.focus(); } }
     else if (k === 'd') { var a = document.querySelector('#download .dl-link'); if (a) { e.preventDefault(); a.click(); } }
+    else if (k === 'c') { if (currentJob) { e.preventDefault(); copyLink(currentJob.id); } }
+    else if (k === 'o') { e.preventDefault(); $('myJobsBtn').click(); }
   });
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {

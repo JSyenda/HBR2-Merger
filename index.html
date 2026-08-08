@@ -16,7 +16,7 @@
   html.theme-light {
     --bg:#f3f5fa; --panel:#ffffff; --panel2:#e9edf5; --line:#d5dce8; --txt:#1d2637; --mut:#5a6b8a;
     --acc:#2f6fe4; --ok:#1f9d55; --bad:#e5484d; --warn:#a86e00;
-    --nav:#e4e9f3; --codebg:#1d2637; --hov:#dde4f0; --soft:#4a5b78;
+    --nav:#e4e9f3; --codebg:#e9edf5; --hov:#dde4f0; --soft:#4a5b78;
   }
   * { box-sizing:border-box; }
   body { margin:0; font-family:Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--txt); }
@@ -39,6 +39,8 @@
   .lang-dd-btn { display:inline-flex; align-items:center; gap:7px; background:var(--panel2); color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:13px; cursor:pointer; font-family:inherit; }
   .lang-dd-btn:hover { border-color:var(--acc); }
   .lang-dd-btn svg { width:15px; height:15px; flex:none; }
+  #themeBtn { color:var(--acc); }
+  #themeBtn svg { width:17px; height:17px; }
   .lang-dd-menu { position:absolute; top:calc(100% + 4px); left:0; z-index:80; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:4px; min-width:150px; box-shadow:0 6px 20px rgba(0,0,0,.5); }
   .lang-dd-menu button { display:flex; align-items:center; gap:8px; width:100%; background:none; border:none; color:var(--txt); font-size:13px; padding:8px 10px; border-radius:6px; cursor:pointer; font-family:inherit; text-align:left; }
   .lang-dd-menu button:hover { background:var(--panel2); }
@@ -76,7 +78,9 @@
   tr[draggable="true"]:active { cursor:grabbing; }
   tr.drag-over td { background:rgba(79,140,255,.08); }
   input.trim { width:64px; background:var(--panel2); border:1px solid var(--line); color:var(--txt); border-radius:6px; padding:4px 6px; font-size:12px; }
+  input.trim.invalid { border-color:var(--bad, #ff5a5a); box-shadow:0 0 0 1px var(--bad, #ff5a5a); }
   input.trim:disabled { opacity:.4; cursor:not-allowed; }
+  tr.ph td { color:var(--mut); opacity:.55; }
   .btn { background:var(--panel2); color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:9px 14px; font-size:14px; cursor:pointer; font-family:inherit; }
   .btn:hover:not(:disabled) { border-color:var(--acc); }
   .btn:disabled { opacity:.45; cursor:not-allowed; }
@@ -92,7 +96,7 @@
   .tablewrap { overflow-x:auto; }
   td:last-child { white-space:nowrap; text-align:right; }
   th:nth-child(1), td:nth-child(1) { width:150px; }
-  pre#log { background:var(--codebg); border:1px solid var(--line); border-radius:8px; padding:12px; font:12px/1.5 Consolas,'Cascadia Mono',monospace; max-height:340px; overflow:auto; white-space:pre-wrap; word-break:break-all; }
+  pre#log { background:var(--codebg); border:1px solid var(--line); border-radius:8px; padding:12px; font:12px/1.5 Consolas,'Cascadia Mono',monospace; max-height:340px; overflow:auto; white-space:pre-wrap; word-break:break-all; color:var(--txt); }
   #status { min-height:20px; font-size:14px; margin-top:6px; }
   #status.running { color:var(--warn); }
   #status.ok { color:var(--ok); font-weight:600; }
@@ -106,6 +110,9 @@
   .report { margin-top:10px; }
   .report pre { background:var(--codebg); border:1px solid var(--line); border-radius:8px; padding:12px; font:12px/1.5 Consolas,'Cascadia Mono',monospace; color:var(--txt); white-space:pre-wrap; }
   .hint { color:var(--mut); font-size:12px; margin-top:8px; }
+  .card.ks { padding:14px 18px; }
+  .ks-grid { display:grid; grid-template-columns:auto 1fr; gap:8px 14px; align-items:center; margin-top:10px; font-size:13px; }
+  .ks-grid .k { display:inline-flex; align-items:center; justify-content:center; min-width:26px; height:24px; padding:0 6px; border:1px solid var(--line); border-bottom-width:2px; border-radius:6px; background:var(--panel2); color:var(--acc); font-weight:700; font-family:Consolas,'Cascadia Mono',monospace; font-size:12px; }
   #spinner { display:none; width:16px; height:16px; border:2px solid var(--line); border-top-color:var(--warn); border-radius:50%; animation:spin .8s linear infinite; }
   #spinner.on { display:inline-block; vertical-align:-3px; }
   @keyframes spin { to { transform:rotate(360deg); } }
@@ -126,7 +133,8 @@
     .card { padding:14px; }
     #dropzone { padding:24px 14px; }
     header.nav .wrap { flex-direction:column; align-items:stretch; gap:8px; min-height:0; }
-    .nav-links { width:100%; justify-content:space-between; }
+    .nav-links { width:100%; justify-content:flex-end; }
+    #navLastJob, #myJobsBtn, #langDD { display:none; }
     .nav-links .discord { flex:1; justify-content:center; }
     .actions { gap:8px; }
     .actions.modes { flex-direction:column; align-items:flex-start; }
@@ -162,10 +170,10 @@
         <span data-i18n="lastRec">Última rec</span>
       </a>
       <button type="button" class="lang-dd-btn" id="themeBtn" data-i18n-title="themeTitle" aria-label="theme">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 1 0-18z"/></svg>
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
       <button type="button" class="lang-dd-btn" id="myJobsBtn" data-i18n-title="myMergesTitle" aria-expanded="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h8v6H3zM13 5h8v6h-8zM3 13h8v6H3zM13 13h8v6h-8z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/></svg>
         <span data-i18n="myMerges">Mis fusiones</span>
       </button>
       <div class="lang-dd" id="langDD">
@@ -212,7 +220,6 @@
       <div class="hint" data-i18n="dropHint">La primera será la Rec 1 (inicio), la segunda la Rec 2 (continuación) y así sucesivamente. Puedes reordenarlas arrastrando las filas o intercambiándolas. También puedes soltarlas en cualquier parte de la página.</div>
     </div>
     <input type="file" id="fileInput" accept=".hbr2" multiple hidden>
-    <div class="hint" data-i18n="dropPage">Suelta recs en cualquier parte de la página.</div>
   </div>
 
   <div class="card">
@@ -223,7 +230,7 @@
     </table>
     </div>
     <div class="hint" data-i18n="dragHint">Arrastra las filas para cambiar el orden.</div>
-    <div class="hint" data-i18n="trimHint">Recorta segundos del inicio o del final de cada rec. Útil para quitar tiempo muerto o solapamientos antes de fusionar.</div>
+    <div class="hint" data-i18n="trimHint">Recorta segundos del inicio o del final de cada rec en formato <b>mm:ss</b>. Útil para quitar tiempo muerto o solapamientos antes de fusionar.</div>
     <div class="actions">
       <button class="btn" id="addRec" data-i18n="addBtn">Añadir</button>
       <button class="btn" id="swap" data-i18n="swapBtn">Intercambiar orden</button>
@@ -233,17 +240,28 @@
       <div class="spacer"></div>
       <button class="btn primary" id="go" data-i18n="mergeBtn">Fusionar</button>
     </div>
-    <div class="hint" data-i18n="ksHint">Atajos: I intercambiar · M fusionar · A añadir · T tema</div>
-    <div class="callout" id="swapInfoBox" data-i18n="swapInfoText" hidden>Si la fusión falla o la rec resultante no se reproduce, prueba a intercambiar el orden de las grabaciones.</div>
+    <div class="callout" id="swapInfoBox" data-i18n="swapInfoText" hidden>Arrastra las filas para cambiar el orden.<br>Recorta segundos del inicio o del final de cada rec. Útil para quitar tiempo muerto o solapamientos antes de fusionar.</div>
   </div>
 
   <div class="card">
     <div class="actions modes">
       <b data-i18n="modeLabel">Modo de fusión</b>
-      <label><input type="radio" name="mode" value="standard"> <span data-i18n="modeStd">Estándar (haxball.com)</span></label>
+      <label><input type="radio" name="mode" value="standard" checked> <span data-i18n="modeStd">Estándar (haxball.com)</span></label>
       <label><input type="radio" name="mode" value="exact"> <span data-i18n="modeExact">Exacto (motor patcheado)</span></label>
     </div>
     <div class="hint" data-i18n="modeHint">En caso de que no funcione el <b>Modo Estándar</b>, prueba con el <b>Modo Exacto</b>. Ten en cuenta que puede llegar a fallar.</div>
+  </div>
+
+  <div class="card ks">
+    <div class="actions">
+      <b data-i18n="ksTitle">Atajos de teclado</b>
+    </div>
+    <div class="ks-grid">
+      <span class="k" data-i18n="ksI">I</span><span data-i18n="ksSwap">Intercambiar orden</span>
+      <span class="k" data-i18n="ksM">M</span><span data-i18n="ksMerge">Fusionar</span>
+      <span class="k" data-i18n="ksA">A</span><span data-i18n="ksAdd">Añadir recs</span>
+      <span class="k" data-i18n="ksT">T</span><span data-i18n="ksTheme">Cambiar tema</span>
+    </div>
   </div>
 
   <div class="card">
@@ -323,10 +341,28 @@
     return el;
   }
 
+  function fmtTrim(sec) {
+    sec = Math.max(0, sec || 0);
+    var m = Math.floor(sec / 60), s = Math.round(sec % 60);
+    if (s === 60) { m++; s = 0; }
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function parseTrim(str) {
+    if (str == null) return 0;
+    str = String(str).trim();
+    if (str === '') return 0;
+    var m = /^(\d{1,2}):(\d{2})$/.exec(str);
+    if (!m) return NaN;
+    return (+m[1]) * 60 + (+m[2]);
+  }
+
   function mkTrim(i, role, val, disabled) {
     var inp = document.createElement('input');
-    inp.type = 'number'; inp.min = 0; inp.step = 1; inp.value = val || 0;
+    inp.type = 'text'; inp.inputMode = 'numeric';
     inp.className = 'trim'; inp.dataset.i = i; inp.dataset.role = role;
+    inp.placeholder = '0:00';
+    inp.value = fmtTrim(val || 0);
     inp.disabled = disabled;
     inp.title = T(role === 'start' ? 'trimColStart' : 'trimColEnd');
     return inp;
@@ -334,6 +370,22 @@
 
   function renderTable() {
     tb.innerHTML = '';
+    if (!recs.length) {
+      for (var p = 0; p < 2; p++) {
+        var ptr = document.createElement('tr');
+        ptr.className = 'ph';
+        ptr.appendChild(mk('td', 'slot', p === 0 ? T('slot1') : T('slot2')));
+        ptr.appendChild(mk('td', 'name'));
+        ptr.appendChild(mk('td'));
+        ptr.appendChild(mk('td'));
+        ptr.appendChild(mk('td'));
+        ptr.appendChild(mk('td'));
+        ptr.appendChild(mk('td'));
+        tb.appendChild(ptr);
+      }
+      $('go').disabled = true;
+      return;
+    }
     recs.forEach(function (r, i) {
       var tr = document.createElement('tr');
       tr.draggable = true;
@@ -443,8 +495,23 @@
     if (!el.classList || !el.classList.contains('trim')) return;
     var r = recs[+el.dataset.i];
     if (!r) return;
-    var v = Math.max(0, parseInt(el.value, 10) || 0);
-    if (el.dataset.role === 'start') r.trimStart = v; else r.trimEnd = v;
+    var raw = el.value.replace(/[^\d:]/g, '');
+    if (el.value !== raw) el.value = raw;
+    var sec = parseTrim(raw);
+    var ok = !isNaN(sec);
+    el.classList.toggle('invalid', !ok);
+    if (ok) {
+      if (el.dataset.role === 'start') r.trimStart = sec; else r.trimEnd = sec;
+    }
+  });
+
+  tb.addEventListener('change', function (e) {
+    var el = e.target;
+    if (!el.classList || !el.classList.contains('trim')) return;
+    var sec = parseTrim(el.value);
+    if (isNaN(sec)) sec = 0;
+    el.classList.remove('invalid');
+    el.value = fmtTrim(sec);
   });
 
   tb.addEventListener('click', function (e) {
@@ -731,8 +798,8 @@
   }
 
   var ICON_THEME = {
-    dark: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 1 0-18z"/></svg>',
-    light: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>'
+    dark: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+    light: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>'
   };
   function themeSync() {
     var btn = $('themeBtn');
@@ -807,7 +874,7 @@
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function () {});
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
     });
   }
 
@@ -849,6 +916,8 @@
     var fw = $('filewarn');
     if (fw) fw.style.display = 'block';
   }
+
+  renderTable();
 
   var q = new URLSearchParams(window.location.search);
   var rjob = q.get('job');

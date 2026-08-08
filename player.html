@@ -128,6 +128,11 @@
     border:1px solid var(--line); border-radius:7px; padding:4px 9px; font-size:12px; cursor:pointer; font-family:inherit; }
   #pxyBar .step:hover { border-color:var(--acc); }
   #pxyBar .step svg { width:13px; height:13px; }
+  #pxyToggle { position:fixed; bottom:60px; left:50%; transform:translateX(-50%); z-index:71;
+    display:flex; align-items:center; gap:6px; background:rgba(13,17,25,.85); color:var(--txt);
+    border:1px solid var(--line); border-radius:20px; padding:7px 12px; font-size:12px; cursor:pointer; font-family:inherit; }
+  #pxyToggle:hover { border-color:var(--acc); }
+  #pxyToggle svg { width:14px; height:14px; }
 
   /* --- responsive / móvil --- */
   /* 100dvh evita que la barra inferior quede cortada bajo la UI del navegador móvil. */
@@ -165,6 +170,13 @@
     .replay-controls-view [data-hook=spd] { min-width:24px; font-size:12px; }
     .replay-controls-view [data-hook=time] { min-width:34px; font-size:12px; }
     .replay-controls-view .timebar { min-width:60px; }
+    /* En móvil la barra de utilidades se vuelve una tira que abarca todo el ancho
+       y baja su posición para no chocar con la UI inferior del navegador. */
+    #pxyBar { bottom:48px; left:8px; right:8px; transform:none; max-width:none; justify-content:center; }
+    #pxyToggle { bottom:48px; left:50%; transform:translateX(-50%); }
+    #pxyBar .sep { display:none; }
+    #pxyBar .step span { display:none; }
+    #pxyBar .step { padding:4px 8px; }
   }
   @media (max-width:360px) {
     /* Pantallas muy pequeñas: se oculta el marcador superior (el tiempo también se
@@ -216,6 +228,9 @@
     <span data-i18n="pStepFwd">Avanzar 1 frame</span>
   </button>
 </div>
+<button id="pxyToggle" type="button" data-i18n-title="pToggle" hidden aria-pressed="false">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+</button>
 
 <script src="vendor/pako-jszip.min.js"></script>
 <script src="game-min_patched.js"></script>
@@ -364,7 +379,7 @@
   function wirePxyBar() {
     var bar = document.getElementById('pxyBar');
     if (!bar || !window._pxy_view || !window._pxy_view.te) return;
-    bar.hidden = false;
+    initPxyToggle();
     bar.querySelectorAll('[data-speed]').forEach(function (chip) {
       chip.addEventListener('click', function () {
         setSpeed(SPEEDS.indexOf(parseFloat(chip.dataset.speed)));
@@ -376,6 +391,24 @@
     if (fwd) fwd.addEventListener('click', function () { stepFrame(1); });
     syncChips();
     setInterval(syncChips, 700);
+  }
+
+  function initPxyToggle() {
+    var bar = document.getElementById('pxyBar');
+    var t = document.getElementById('pxyToggle');
+    if (!bar || !t) return;
+    var show = true;
+    try { show = localStorage.getItem('hbr2.pxy') !== '0'; } catch (e) {}
+    function apply() {
+      if (show) { bar.hidden = false; t.hidden = true; t.setAttribute('aria-pressed', 'false'); }
+      else { bar.hidden = true; t.hidden = false; t.setAttribute('aria-pressed', 'true'); }
+    }
+    t.addEventListener('click', function () {
+      show = !show;
+      try { localStorage.setItem('hbr2.pxy', show ? '1' : '0'); } catch (e) {}
+      apply();
+    });
+    apply();
   }
 
   // --- Botones propios del merger: ocultar chat y pantalla completa ---
@@ -532,7 +565,7 @@
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function () {});
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
     });
   }
 })();

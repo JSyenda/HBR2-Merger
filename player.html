@@ -133,6 +133,8 @@
     border:1px solid var(--line); border-radius:20px; padding:7px 12px; font-size:12px; cursor:pointer; font-family:inherit; }
   #pxyToggle:hover { border-color:var(--acc); }
   #pxyToggle svg { width:14px; height:14px; }
+  /* El atributo hidden debe ganar al display:flex/flex-wrap que tienen #pxyBar y #pxyToggle. */
+  #pxyBar[hidden], #pxyToggle[hidden] { display:none !important; }
 
   /* --- responsive / móvil --- */
   /* 100dvh evita que la barra inferior quede cortada bajo la UI del navegador móvil. */
@@ -170,13 +172,17 @@
     .replay-controls-view [data-hook=spd] { min-width:24px; font-size:12px; }
     .replay-controls-view [data-hook=time] { min-width:34px; font-size:12px; }
     .replay-controls-view .timebar { min-width:60px; }
-    /* En móvil la barra de utilidades se vuelve una tira que abarca todo el ancho
-       y baja su posición para no chocar con la UI inferior del navegador. */
-    #pxyBar { bottom:48px; left:8px; right:8px; transform:none; max-width:none; justify-content:center; }
-    #pxyToggle { bottom:48px; left:50%; transform:translateX(-50%); }
+    /* En móvil la barra de utilidades se convierte en una tira que ocupa todo el
+       ancho y que se desliza horizontalmente si no cabe; el toggle baja junto a ella. */
+    #pxyBar { bottom:56px; left:8px; right:8px; transform:none; max-width:none; justify-content:flex-start;
+      flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    #pxyBar::-webkit-scrollbar { display:none; }
+    #pxyBar .p-label { display:none; }
     #pxyBar .sep { display:none; }
     #pxyBar .step span { display:none; }
-    #pxyBar .step { padding:4px 8px; }
+    #pxyBar .chip { padding:4px 4px; min-width:28px; font-size:11px; flex:0 0 auto; }
+    #pxyBar .step { padding:4px 6px; flex:0 0 auto; }
+    #pxyToggle { bottom:56px; left:50%; transform:translateX(-50%); }
   }
   @media (max-width:360px) {
     /* Pantallas muy pequeñas: se oculta el marcador superior (el tiempo también se

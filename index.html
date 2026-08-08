@@ -90,6 +90,7 @@
   .icon-info:hover, .icon-info[aria-expanded="true"] { color:var(--acc); border-color:var(--acc); background:var(--hov); }
   .icon-info svg { width:18px; height:18px; }
   .callout { margin-top:10px; background:rgba(79,140,255,.08); border:1px solid rgba(79,140,255,.3); color:var(--soft); border-radius:10px; padding:11px 14px; font-size:13px; line-height:1.55; }
+  .callout hr { border:none; border-top:1px solid rgba(79,140,255,.35); margin:10px 0; }
   .actions { display:flex; gap:10px; align-items:center; margin-top:14px; flex-wrap:wrap; }
   .actions.modes label { display:inline-flex; gap:6px; align-items:center; cursor:pointer; font-size:13px; }
   .spacer { flex:1; }
@@ -132,10 +133,12 @@
     .wrap { padding:16px 12px 48px; }
     .card { padding:14px; }
     #dropzone { padding:24px 14px; }
-    header.nav .wrap { flex-direction:column; align-items:stretch; gap:8px; min-height:0; }
-    .nav-links { width:100%; justify-content:flex-end; }
-    #navLastJob, #myJobsBtn, #langDD { display:none; }
-    .nav-links .discord { flex:1; justify-content:center; }
+    header.nav .wrap { flex-direction:column; align-items:stretch; gap:6px; min-height:0; }
+    .nav-links { width:100%; justify-content:space-between; gap:6px; }
+    #navLastJob, #myJobsBtn, #langDD { display:inline-flex; }
+    .nav-job span, #myJobsBtn span { display:none; }
+    .nav-job, .lang-dd-btn { padding:7px 8px; }
+    .nav-links .discord { padding:8px 12px; }
     .actions { gap:8px; }
     .actions.modes { flex-direction:column; align-items:flex-start; }
     .spacer { display:none; }
@@ -229,8 +232,6 @@
       <tbody id="rows"></tbody>
     </table>
     </div>
-    <div class="hint" data-i18n="dragHint">Arrastra las filas para cambiar el orden.</div>
-    <div class="hint" data-i18n="trimHint">Recorta segundos del inicio o del final de cada rec en formato <b>mm:ss</b>. Útil para quitar tiempo muerto o solapamientos antes de fusionar.</div>
     <div class="actions">
       <button class="btn" id="addRec" data-i18n="addBtn">Añadir</button>
       <button class="btn" id="swap" data-i18n="swapBtn">Intercambiar orden</button>
@@ -240,7 +241,7 @@
       <div class="spacer"></div>
       <button class="btn primary" id="go" data-i18n="mergeBtn">Fusionar</button>
     </div>
-    <div class="callout" id="swapInfoBox" data-i18n="swapInfoText" hidden>Arrastra las filas para cambiar el orden.<br>Recorta segundos del inicio o del final de cada rec. Útil para quitar tiempo muerto o solapamientos antes de fusionar.</div>
+    <div class="callout" id="swapInfoBox" data-i18n="swapInfoText" hidden>Si la fusión falla o la rec resultante no se reproduce, prueba a intercambiar el orden de las grabaciones: a veces, empezar por la otra rec hace que el fusionador complete el proceso correctamente.<hr>Arrastra las filas para cambiar el orden.<br>Recorta segundos del inicio o del final de cada rec en formato <b>mm:ss</b>. Útil para quitar tiempo muerto o solapamientos antes de fusionar.</div>
   </div>
 
   <div class="card">

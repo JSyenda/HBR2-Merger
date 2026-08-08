@@ -113,21 +113,6 @@
     border-radius:4px; border:1px solid var(--line); }
   a.back:hover { color:#8ab4ff; border-color:var(--acc); }
 
-  /* --- barra de utilidades (mostrar/ocultar) + botón mostrar/ocultar --- */
-  /* Colocada en la esquina inferior derecha para no tapar el chat (que vive abajo a la izquierda). */
-  #pxyWrap { position:fixed; bottom:60px; right:14px; left:auto; z-index:70;
-    display:flex; align-items:center; gap:8px; }
-  #pxyBar { display:flex; align-items:center; gap:6px; background:rgba(13,17,25,.94);
-    border:1px solid var(--line); border-radius:12px; padding:6px 8px; box-shadow:0 6px 20px rgba(0,0,0,.4);
-    flex-wrap:nowrap; }
-  #pxyToggle { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px;
-    background:rgba(13,17,25,.85); color:var(--txt); border:1px solid var(--line); border-radius:10px;
-    cursor:pointer; font-family:inherit; }
-  #pxyToggle:hover { border-color:var(--acc); color:var(--acc); }
-  #pxyToggle svg { width:16px; height:16px; }
-  /* El atributo hidden debe ganar al display:flex/flex-wrap que tienen #pxyWrap y #pxyBar. */
-  #pxyWrap[hidden], #pxyBar[hidden] { display:none !important; }
-
   /* --- responsive / móvil --- */
   /* 100dvh evita que la barra inferior quede cortada bajo la UI del navegador móvil. */
   @supports (height:100dvh) { .game-view { height:100dvh; } }
@@ -164,8 +149,6 @@
     .replay-controls-view [data-hook=spd] { min-width:24px; font-size:12px; }
     .replay-controls-view [data-hook=time] { min-width:34px; font-size:12px; }
     .replay-controls-view .timebar { min-width:60px; }
-    /* En móvil la barra se compacta (solo iconos) y sigue anclada a la derecha. */
-    #pxyWrap { bottom:56px; right:8px; left:auto; }
   }
   @media (max-width:360px) {
     /* Pantallas muy pequeñas: se oculta el marcador superior (el tiempo también se
@@ -195,12 +178,6 @@
 <div id="err" style="display:none"></div>
 <div id="container"></div>
 <a class="back" href="./" data-i18n="pBack">← Volver al merger</a>
-<div id="pxyWrap" hidden>
-  <div id="pxyBar"></div>
-  <button id="pxyToggle" type="button" data-i18n-title="pToggle" aria-pressed="false">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-  </button>
-</div>
 
 <script src="vendor/pako-jszip.min.js"></script>
 <script src="game-min_patched.js"></script>
@@ -286,33 +263,7 @@
     view.te.oe = function () { view.la(); };
     window._pxy_C.Oa(view.l.f);
     addPlayerExtras();
-    wirePxyBar();
     seekOnLoad();
-  }
-
-  function wirePxyBar() {
-    var wrap = document.getElementById('pxyWrap');
-    if (!wrap || !window._pxy_view || !window._pxy_view.te) return;
-    wrap.hidden = false;
-    initPxyToggle();
-  }
-
-  function initPxyToggle() {
-    var bar = document.getElementById('pxyBar');
-    var t = document.getElementById('pxyToggle');
-    if (!bar || !t) return;
-    var show = true;
-    try { show = localStorage.getItem('hbr2.pxy') !== '0'; } catch (e) {}
-    function apply() {
-      bar.hidden = !show;
-      t.setAttribute('aria-pressed', show ? 'false' : 'true');
-    }
-    t.addEventListener('click', function () {
-      show = !show;
-      try { localStorage.setItem('hbr2.pxy', show ? '1' : '0'); } catch (e) {}
-      apply();
-    });
-    apply();
   }
 
   // --- Botones propios del merger: ocultar chat y pantalla completa ---

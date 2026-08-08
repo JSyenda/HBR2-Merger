@@ -113,28 +113,25 @@
     border-radius:4px; border:1px solid var(--line); }
   a.back:hover { color:#8ab4ff; border-color:var(--acc); }
 
-  /* --- barra de utilidades (velocidad + paso de frame) --- */
-  #pxyBar { position:fixed; bottom:60px; left:50%; transform:translateX(-50%); z-index:70;
-    display:flex; align-items:center; gap:6px; background:rgba(13,17,25,.94);
-    border:1px solid var(--line); border-radius:12px; padding:6px 10px; box-shadow:0 6px 20px rgba(0,0,0,.4);
-    flex-wrap:wrap; justify-content:center; max-width:calc(100vw - 24px); }
-  #pxyBar .p-label { color:var(--mut); font-size:12px; margin-right:2px; }
-  #pxyBar .chip { background:var(--panel2); color:var(--txt); border:1px solid var(--line); border-radius:7px;
-    padding:4px 8px; font-size:12px; cursor:pointer; font-family:inherit; min-width:38px; }
-  #pxyBar .chip:hover { border-color:var(--acc); }
-  #pxyBar .chip.active { background:var(--acc); border-color:var(--acc); color:#fff; font-weight:600; }
-  #pxyBar .sep { width:1px; align-self:stretch; background:var(--line); margin:2px 2px; }
+  /* --- barra de utilidades (paso de frame) + botón mostrar/ocultar --- */
+  /* Colocada en la esquina inferior derecha para no tapar el chat (que vive abajo a la izquierda). */
+  #pxyWrap { position:fixed; bottom:60px; right:14px; left:auto; z-index:70;
+    display:flex; align-items:center; gap:8px; }
+  #pxyBar { display:flex; align-items:center; gap:6px; background:rgba(13,17,25,.94);
+    border:1px solid var(--line); border-radius:12px; padding:6px 8px; box-shadow:0 6px 20px rgba(0,0,0,.4);
+    flex-wrap:nowrap; }
   #pxyBar .step { display:inline-flex; align-items:center; gap:5px; background:var(--panel2); color:var(--txt);
-    border:1px solid var(--line); border-radius:7px; padding:4px 9px; font-size:12px; cursor:pointer; font-family:inherit; }
+    border:1px solid var(--line); border-radius:7px; padding:4px 9px; font-size:12px; cursor:pointer; font-family:inherit;
+    white-space:nowrap; }
   #pxyBar .step:hover { border-color:var(--acc); }
-  #pxyBar .step svg { width:13px; height:13px; }
-  #pxyToggle { position:fixed; bottom:60px; left:50%; transform:translateX(-50%); z-index:71;
-    display:flex; align-items:center; gap:6px; background:rgba(13,17,25,.85); color:var(--txt);
-    border:1px solid var(--line); border-radius:20px; padding:7px 12px; font-size:12px; cursor:pointer; font-family:inherit; }
-  #pxyToggle:hover { border-color:var(--acc); }
-  #pxyToggle svg { width:14px; height:14px; }
-  /* El atributo hidden debe ganar al display:flex/flex-wrap que tienen #pxyBar y #pxyToggle. */
-  #pxyBar[hidden], #pxyToggle[hidden] { display:none !important; }
+  #pxyBar .step svg { width:13px; height:13px; flex:none; }
+  #pxyToggle { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px;
+    background:rgba(13,17,25,.85); color:var(--txt); border:1px solid var(--line); border-radius:10px;
+    cursor:pointer; font-family:inherit; }
+  #pxyToggle:hover { border-color:var(--acc); color:var(--acc); }
+  #pxyToggle svg { width:16px; height:16px; }
+  /* El atributo hidden debe ganar al display:flex/flex-wrap que tienen #pxyWrap y #pxyBar. */
+  #pxyWrap[hidden], #pxyBar[hidden] { display:none !important; }
 
   /* --- responsive / móvil --- */
   /* 100dvh evita que la barra inferior quede cortada bajo la UI del navegador móvil. */
@@ -172,17 +169,10 @@
     .replay-controls-view [data-hook=spd] { min-width:24px; font-size:12px; }
     .replay-controls-view [data-hook=time] { min-width:34px; font-size:12px; }
     .replay-controls-view .timebar { min-width:60px; }
-    /* En móvil la barra de utilidades se convierte en una tira que ocupa todo el
-       ancho y que se desliza horizontalmente si no cabe; el toggle baja junto a ella. */
-    #pxyBar { bottom:56px; left:8px; right:8px; transform:none; max-width:none; justify-content:flex-start;
-      flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
-    #pxyBar::-webkit-scrollbar { display:none; }
-    #pxyBar .p-label { display:none; }
-    #pxyBar .sep { display:none; }
+    /* En móvil la barra se compacta (solo iconos) y sigue anclada a la derecha. */
+    #pxyWrap { bottom:56px; right:8px; left:auto; }
     #pxyBar .step span { display:none; }
-    #pxyBar .chip { padding:4px 4px; min-width:28px; font-size:11px; flex:0 0 auto; }
-    #pxyBar .step { padding:4px 6px; flex:0 0 auto; }
-    #pxyToggle { bottom:56px; left:50%; transform:translateX(-50%); }
+    #pxyBar .step { padding:6px 9px; }
   }
   @media (max-width:360px) {
     /* Pantallas muy pequeñas: se oculta el marcador superior (el tiempo también se
@@ -212,31 +202,21 @@
 <div id="err" style="display:none"></div>
 <div id="container"></div>
 <a class="back" href="./" data-i18n="pBack">← Volver al merger</a>
-<div id="pxyBar" hidden>
-  <span class="p-label" data-i18n="pSpeed">Velocidad</span>
-  <button class="chip" type="button" data-speed="0.1">0.1x</button>
-  <button class="chip" type="button" data-speed="0.5">0.5x</button>
-  <button class="chip" type="button" data-speed="0.75">0.75x</button>
-  <button class="chip" type="button" data-speed="1">1x</button>
-  <button class="chip" type="button" data-speed="2">2x</button>
-  <button class="chip" type="button" data-speed="3">3x</button>
-  <button class="chip" type="button" data-speed="5">5x</button>
-  <button class="chip" type="button" data-speed="10">10x</button>
-  <button class="chip" type="button" data-speed="20">20x</button>
-  <button class="chip" type="button" data-speed="50">50x</button>
-  <span class="sep"></span>
-  <button class="step" type="button" id="stepBack" data-i18n-title="pStepBack">
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 5h2v14H5zm14.5 0v14l-9-7z"/></svg>
-    <span data-i18n="pStepBack">Retroceder 1 frame</span>
-  </button>
-  <button class="step" type="button" id="stepFwd" data-i18n-title="pStepFwd">
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 5h2v14h-2zM4.5 5v14l9-7z"/></svg>
-    <span data-i18n="pStepFwd">Avanzar 1 frame</span>
+<div id="pxyWrap" hidden>
+  <div id="pxyBar">
+    <button class="step" type="button" id="stepBack" data-i18n-title="pStepBack">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 5h2v14H5zm14.5 0v14l-9-7z"/></svg>
+      <span data-i18n="pStepBack">Retroceder 1 frame</span>
+    </button>
+    <button class="step" type="button" id="stepFwd" data-i18n-title="pStepFwd">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 5h2v14h-2zM4.5 5v14l9-7z"/></svg>
+      <span data-i18n="pStepFwd">Avanzar 1 frame</span>
+    </button>
+  </div>
+  <button id="pxyToggle" type="button" data-i18n-title="pToggle" aria-pressed="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
   </button>
 </div>
-<button id="pxyToggle" type="button" data-i18n-title="pToggle" hidden aria-pressed="false">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-</button>
 
 <script src="vendor/pako-jszip.min.js"></script>
 <script src="game-min_patched.js"></script>
@@ -326,37 +306,6 @@
     seekOnLoad();
   }
 
-  var SPEEDS = [0.1, 0.5, 0.75, 1, 2, 3, 5, 10, 20, 50];
-
-  function speedIndexFromLabel() {
-    var view = window._pxy_view;
-    if (!view || !view.te || !view.te.f) return 3;
-    var el = view.te.f.querySelector('[data-hook=spd]');
-    if (!el) return 3;
-    var v = parseFloat(el.textContent.replace(/x$/, ''));
-    var i = SPEEDS.indexOf(v);
-    return i < 0 ? 3 : i;
-  }
-
-  function setSpeed(i) {
-    var view = window._pxy_view;
-    if (!view || !view.te || !view.te.f) return;
-    var bar = view.te.f;
-    var cur = speedIndexFromLabel();
-    while (cur < i) { var up = bar.querySelector('[data-hook=spdup]'); if (!up) return; up.click(); cur++; }
-    while (cur > i) { var dn = bar.querySelector('[data-hook=spddn]'); if (!dn) return; dn.click(); cur--; }
-    syncChips();
-  }
-
-  function syncChips() {
-    var bar = document.getElementById('pxyBar');
-    if (!bar) return;
-    var i = speedIndexFromLabel();
-    bar.querySelectorAll('[data-speed]').forEach(function (chip) {
-      chip.classList.toggle('active', SPEEDS.indexOf(parseFloat(chip.dataset.speed)) === i);
-    });
-  }
-
   function stepFrame(dir) {
     var rep = window._pxy_rep, view = window._pxy_view;
     if (!rep || !view || !view.te || !view.te.f) return;
@@ -379,24 +328,17 @@
     rep.A();
     try { view.l.A(rep); } catch (e) {}
     window._pxy_lastUb = rep.Ub;
-    syncChips();
   }
 
   function wirePxyBar() {
-    var bar = document.getElementById('pxyBar');
-    if (!bar || !window._pxy_view || !window._pxy_view.te) return;
+    var wrap = document.getElementById('pxyWrap');
+    if (!wrap || !window._pxy_view || !window._pxy_view.te) return;
+    wrap.hidden = false;
     initPxyToggle();
-    bar.querySelectorAll('[data-speed]').forEach(function (chip) {
-      chip.addEventListener('click', function () {
-        setSpeed(SPEEDS.indexOf(parseFloat(chip.dataset.speed)));
-      });
-    });
     var back = document.getElementById('stepBack');
     var fwd = document.getElementById('stepFwd');
     if (back) back.addEventListener('click', function () { stepFrame(-1); });
     if (fwd) fwd.addEventListener('click', function () { stepFrame(1); });
-    syncChips();
-    setInterval(syncChips, 700);
   }
 
   function initPxyToggle() {
@@ -406,8 +348,8 @@
     var show = true;
     try { show = localStorage.getItem('hbr2.pxy') !== '0'; } catch (e) {}
     function apply() {
-      if (show) { bar.hidden = false; t.hidden = true; t.setAttribute('aria-pressed', 'false'); }
-      else { bar.hidden = true; t.hidden = false; t.setAttribute('aria-pressed', 'true'); }
+      bar.hidden = !show;
+      t.setAttribute('aria-pressed', show ? 'false' : 'true');
     }
     t.addEventListener('click', function () {
       show = !show;

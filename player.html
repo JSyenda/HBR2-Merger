@@ -102,11 +102,12 @@
   /* --- popups / overlays --- */
   .game-view>[data-hook=popups] { background:rgba(8,14,28,.6); }
   .game-state-view.restricted { background:var(--nav); }
-  .chatbox-view-contents { background:var(--panel); }
-  .chatbox-view-contents>.input input[type=text] { background:var(--codebg); color:var(--txt); }
+  /* El chat se mantiene fijo como en el reproductor original (no cambia con el tema). */
+  .chatbox-view-contents { background:rgba(15,20,32,.88); }
+  .chatbox-view-contents>.input input[type=text] { background:#0f1420; color:#dbe4f4; }
   .chatbox-view-contents>.input input[type=text]:focus { border:1px solid var(--acc); padding:0 7px; }
-  .chatbox-view-contents>.input button { background:var(--panel2); border:1px solid var(--line); color:var(--txt); }
-  .chatbox-view-contents>.input button:hover { background:var(--hov); border-color:var(--acc); }
+  .chatbox-view-contents>.input button { background:#202a40; border:1px solid #2c3a55; color:#dbe4f4; }
+  .chatbox-view-contents>.input button:hover { background:#2a3550; border-color:var(--acc); }
 
   /* --- utilidades del merger --- */
     #err { position:fixed; left:16px; right:16px; top:16px; z-index:99;

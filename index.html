@@ -192,6 +192,23 @@
     .job-row { flex-wrap:wrap; }
     .job-row .job-meta { width:100%; }
   }
+  /* --- overrides light mode (los estilos FFL/glass usan tintes oscuros hardcoded;
+         aquí se revierten a la paleta clara) --- */
+  html.theme-light .ambient > .a-glow { background:radial-gradient(circle at top, rgba(79,140,255,.10), transparent 58%); }
+  html.theme-light .ambient > .a-blue { background:rgba(79,140,255,.10); }
+  html.theme-light .ambient > .a-red { background:rgba(255,90,90,.08); }
+  html.theme-light .card { background:var(--panel); border:1px solid var(--line); }
+  html.theme-light .lang-dd-menu { background:var(--panel); border:1px solid var(--line); }
+  html.theme-light #toTop { background:var(--panel2); border:1px solid var(--line); }
+  html.theme-light .nav-links { background:var(--panel); }
+  html.theme-light .btn { background:var(--panel2); border:1px solid var(--line); box-shadow:none; }
+  html.theme-light .btn:hover:not(:disabled) { border-color:var(--acc); background:var(--hov); box-shadow:none; }
+  html.theme-light .btn.primary:hover:not(:disabled) { box-shadow:none; }
+  html.theme-light #dropzone { background:transparent; border-color:var(--line); box-shadow:none; }
+  html.theme-light #dropzone.over, html.theme-light #dropzone:hover { background:var(--panel2); box-shadow:none; }
+  html.theme-light .ks-row .k { background:var(--panel2); border-color:var(--line); }
+  html.theme-light pre#log, html.theme-light .report pre { border:1px solid var(--line); }
+  html.theme-light #download .dl-link:hover, html.theme-light #download .dl-play:hover { box-shadow:none; }
 </style>
 <script>
 (function () {

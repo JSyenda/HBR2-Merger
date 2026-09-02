@@ -174,6 +174,20 @@
   .replay-controls-view .timebar, #fileInput, a.back { touch-action:manipulation;
     -webkit-tap-highlight-color:transparent; }
   .replay-controls-view .timebar { touch-action:none; }
+
+  /* --- chat en modo claro --- */
+  /* El chat es fijo oscuro por defecto (reproductor original); en light mode se usa
+     fondo claro translúcido y texto oscuro para que sea legible. */
+  html.theme-light .chatbox-view-contents { background:rgba(255,255,255,.85); }
+  html.theme-light .chatbox-view-contents>.log, html.theme-light .chatbox-view-contents>.log .log-contents p { color:#1d2637; }
+  html.theme-light .chatbox-view-contents>.log .log-contents p.notice { color:#1f9d55; }
+  html.theme-light .chatbox-view-contents>.input input[type=text] { background:#ffffff; color:#1d2637; border:1px solid #b9c4d8; padding:2px 5px; }
+  html.theme-light .chatbox-view-contents>.input input[type=text]::placeholder { color:#8a94a8; }
+  html.theme-light .chatbox-view-contents>.input button { background:#2f6fe4; color:#fff; border:1px solid #2f6fe4; }
+  html.theme-light .chatbox-view-contents>.input button:hover { background:#2561cf; }
+  html.theme-light .chatbox-view-contents>.input button:active { background:#1f54b5; }
+  html.theme-light .chatbox-view-contents>.input button:disabled { background:#c9d2e0; color:#6b7688; border-color:#c9d2e0; }
+  html.theme-light .game-view.chat-bg-full .bottom-section { background-color:rgba(255,255,255,.85); }
 </style>
 <script>
   try { if (localStorage.getItem('hbr2.theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (e) {}

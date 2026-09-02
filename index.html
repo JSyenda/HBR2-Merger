@@ -6,12 +6,12 @@
 <title>HBR2 Merger</title>
 <link rel="icon" href="favicon.ico">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0f1420">
+<meta name="theme-color" content="#060b18">
 <style>
   :root {
-    --bg:#0f1420; --panel:#1a2233; --panel2:#202a40; --line:#2c3a55; --txt:#dbe4f4; --mut:#8ba0c0;
+    --bg:#060b18; --panel:#0c1525; --panel2:#121f36; --line:#1c2e4a; --txt:#dbe4f4; --mut:#8ba0c0;
     --acc:#4f8cff; --ok:#2ecc71; --bad:#ff5a5a; --warn:#f1c40f;
-    --nav:#111725; --codebg:#0a0f1a; --hov:#2a3550; --soft:#b9c7dd;
+    --nav:#080e1c; --codebg:#040810; --hov:#183060; --soft:#b9c7dd;
   }
   html.theme-light {
     --bg:#f3f5fa; --panel:#ffffff; --panel2:#e9edf5; --line:#d5dce8; --txt:#1d2637; --mut:#5a6b8a;
@@ -20,10 +20,15 @@
   }
   * { box-sizing:border-box; }
   body { margin:0; font-family:Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--txt); }
-  .wrap { max-width:960px; margin:0 auto; padding:24px 16px 64px; }
+  /* fondo ambiental fijo (estilo FFL) — blobs difuminados en azul/rojo HBR2 */
+  .ambient { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .ambient > .a-glow { position:absolute; inset:0; background:radial-gradient(circle at top, rgba(79,140,255,.26), transparent 58%); }
+  .ambient > .a-blue { position:absolute; top:-4rem; right:-8%; width:28rem; height:28rem; border-radius:50%; background:rgba(79,140,255,.16); filter:blur(70px); }
+  .ambient > .a-red { position:absolute; bottom:-12%; left:-6%; width:26rem; height:26rem; border-radius:50%; background:rgba(255,90,90,.12); filter:blur(70px); }
+  .wrap { position:relative; z-index:1; max-width:960px; margin:0 auto; padding:24px 16px 64px; }
   /* --- nav --- */
   [hidden] { display:none !important; }
-  header.nav { position:sticky; top:0; z-index:40; background:var(--nav); border-bottom:1px solid var(--line); }
+  header.nav { position:sticky; top:0; z-index:40; background:var(--nav); border-bottom:1px solid var(--line); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
   header.nav .wrap { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:10px 16px; min-height:58px; }
   .brand { display:inline-flex; align-items:center; gap:10px; color:var(--txt); text-decoration:none; font-weight:700; font-size:17px; letter-spacing:.2px; }
   .brand:hover { color:var(--acc); }
@@ -46,13 +51,13 @@
   .lang-dd-btn svg { width:15px; height:15px; flex:none; }
   #themeBtn { color:var(--acc); }
   #themeBtn svg { width:17px; height:17px; }
-  .lang-dd-menu { position:absolute; top:calc(100% + 4px); left:50%; transform:translateX(-50%); z-index:80; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:4px; width:max-content; min-width:0; box-shadow:0 6px 20px rgba(0,0,0,.5); }
+  .lang-dd-menu { position:absolute; top:calc(100% + 4px); left:50%; transform:translateX(-50%); z-index:80; background:rgba(12,21,37,.92); border:1px solid var(--line); border-radius:8px; padding:4px; width:max-content; min-width:0; box-shadow:0 6px 20px rgba(0,0,0,.5); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
   .lang-dd-menu button { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; background:none; border:none; color:var(--txt); font-size:13px; padding:8px 10px; border-radius:6px; cursor:pointer; font-family:inherit; text-align:left; }
   .lang-dd-menu button:hover { background:var(--panel2); }
   .lang-dd-menu button.active { color:var(--acc); }
   .flag { display:inline-block; width:20px; height:14px; border-radius:2px; overflow:hidden; box-shadow:0 0 0 1px rgba(255,255,255,.15); flex:none; }
   .flag svg { display:block; width:100%; height:100%; }
-  #toTop { position:fixed; right:18px; bottom:18px; z-index:60; width:44px; height:44px; border-radius:50%; background:var(--panel2); border:1px solid var(--line); color:var(--acc); cursor:pointer; display:none; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,.4); }
+  #toTop { position:fixed; right:18px; bottom:18px; z-index:60; width:44px; height:44px; border-radius:50%; background:rgba(18,31,54,.85); border:1px solid var(--line); color:var(--acc); cursor:pointer; display:none; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,.4); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
   #toTop.show { display:inline-flex; }
   #toTop:hover { border-color:var(--acc); background:var(--hov); }
   #toTop svg { width:22px; height:22px; }
@@ -69,10 +74,10 @@
   .foot-links a { display:inline-flex; align-items:center; gap:7px; color:var(--mut); font-size:13px; text-decoration:none; }
   .foot-links a:hover { color:var(--acc); }
   .foot-links svg { width:17px; height:17px; }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px; margin-bottom:16px; }
-  .card.intro hr { border:none; border-top:1px solid var(--line); margin:10px 0; }
-  #dropzone { border:2px dashed var(--line); border-radius:10px; padding:34px 20px; text-align:center; color:var(--mut); cursor:pointer; transition:background .15s,border-color .15s; }
-  #dropzone.over, #dropzone:hover { border-color:var(--acc); background:var(--panel2); color:var(--txt); }
+  .card { background:rgba(12,21,37,.82); border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:18px; margin-bottom:16px; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
+  .card.intro hr { border:none; border-top:1px solid rgba(255,255,255,.12); margin:10px 0; }
+  #dropzone { border:2px dashed rgba(79,140,255,.3); border-radius:10px; padding:34px 20px; text-align:center; color:var(--mut); cursor:pointer; background:rgba(79,140,255,.04); transition:background .15s,border-color .15s,box-shadow .15s; }
+  #dropzone.over, #dropzone:hover { border-color:var(--acc); background:rgba(79,140,255,.1); color:var(--txt); box-shadow:0 0 22px rgba(79,140,255,.16); }
   #dropzone b { color:var(--acc); }
   table { width:100%; border-collapse:collapse; margin-top:6px; }
   th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); font-size:13px; }
@@ -82,42 +87,43 @@
   td.dur { white-space:nowrap; font-variant-numeric:tabular-nums; }
   tr[draggable="true"] { cursor:grab; }
   tr[draggable="true"]:active { cursor:grabbing; }
-  tr.drag-over td { background:rgba(79,140,255,.08); }
+  tr.drag-over td { background:rgba(79,140,255,.12); }
   tr.ph td { color:var(--mut); opacity:.55; }
-  .btn { background:var(--panel2); color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:9px 14px; font-size:14px; cursor:pointer; font-family:inherit; }
-  .btn:hover:not(:disabled) { border-color:var(--acc); }
+  .btn { background:rgba(18,31,54,.72); color:var(--txt); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:9px 14px; font-size:14px; cursor:pointer; font-family:inherit; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); transition:background .15s,border-color .15s,box-shadow .15s; }
+  .btn:hover:not(:disabled) { border-color:rgba(79,140,255,.45); background:rgba(24,48,96,.82); box-shadow:0 0 18px rgba(79,140,255,.18); }
   .btn:disabled { opacity:.45; cursor:not-allowed; }
   .btn.primary { background:var(--acc); border-color:var(--acc); color:#fff; font-weight:600; }
+  .btn.primary:hover:not(:disabled) { background:#3d7df0; box-shadow:0 0 22px rgba(79,140,255,.35); }
   .btn.small { padding:4px 9px; font-size:12px; }
   .icon-info { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; flex:none; background:var(--panel2); color:var(--mut); border:1px solid var(--line); border-radius:8px; cursor:pointer; padding:0; }
   .icon-info:hover, .icon-info[aria-expanded="true"] { color:var(--acc); border-color:var(--acc); background:var(--hov); }
   .icon-info svg { width:18px; height:18px; }
-  .callout { margin-top:10px; background:rgba(79,140,255,.08); border:1px solid rgba(79,140,255,.3); color:var(--soft); border-radius:10px; padding:11px 14px; font-size:13px; line-height:1.55; }
-  .callout hr { border:none; border-top:1px solid rgba(79,140,255,.35); margin:10px 0; }
+  .callout { margin-top:10px; background:rgba(79,140,255,.1); border:1px solid rgba(79,140,255,.32); color:var(--soft); border-radius:10px; padding:11px 14px; font-size:13px; line-height:1.55; }
+  .callout hr { border:none; border-top:1px solid rgba(79,140,255,.4); margin:10px 0; }
   .actions { display:flex; gap:10px; align-items:center; margin-top:14px; flex-wrap:wrap; }
   .actions.modes label { display:inline-flex; gap:6px; align-items:center; cursor:pointer; font-size:13px; }
   .spacer { flex:1; }
   .tablewrap { overflow-x:auto; }
   td:last-child { white-space:nowrap; text-align:right; }
   th:nth-child(1), td:nth-child(1) { width:150px; }
-  pre#log { background:var(--codebg); border:1px solid var(--line); border-radius:8px; padding:12px; font:12px/1.5 Consolas,'Cascadia Mono',monospace; max-height:340px; overflow:auto; white-space:pre-wrap; word-break:break-all; color:var(--txt); }
+  pre#log { background:var(--codebg); border:1px solid rgba(255,255,255,.08); border-radius:8px; padding:12px; font:12px/1.5 Consolas,'Cascadia Mono',monospace; max-height:340px; overflow:auto; white-space:pre-wrap; word-break:break-all; color:var(--txt); }
   #status { min-height:20px; font-size:14px; margin-top:6px; }
   #status.running { color:var(--warn); }
   #status.ok { color:var(--ok); font-weight:600; }
   #status.failed, #status.error { color:var(--bad); font-weight:600; }
   #download .dl-link { color:var(--ok); font-weight:700; text-decoration:none; border:1px solid var(--ok); border-radius:8px; padding:10px 16px; display:block; margin-top:10px; text-align:center; }
-  #download .dl-link:hover { background:rgba(46,204,113,.12); }
+  #download .dl-link:hover { background:rgba(46,204,113,.14); box-shadow:0 0 18px rgba(46,204,113,.18); }
   #download .dl-play { color:var(--acc); font-weight:700; text-decoration:none; border:1px solid var(--acc); border-radius:8px; padding:10px 16px; display:block; margin-top:10px; text-align:center; }
-  #download .dl-play:hover { background:rgba(79,140,255,.12); }
+  #download .dl-play:hover { background:rgba(79,140,255,.14); box-shadow:0 0 18px rgba(79,140,255,.2); }
   .rename-input { flex:1 1 200px; min-width:180px; background:var(--panel2); border:1px solid var(--line); color:var(--txt); border-radius:8px; padding:7px 10px; font-size:13px; }
   .dl-actions { margin-top:10px; }
   .report { margin-top:10px; }
-  .report pre { background:var(--codebg); border:1px solid var(--line); border-radius:8px; padding:12px; font:12px/1.5 Consolas,'Cascadia Mono',monospace; color:var(--txt); white-space:pre-wrap; }
+  .report pre { background:var(--codebg); border:1px solid rgba(255,255,255,.08); border-radius:8px; padding:12px; font:12px/1.5 Consolas,'Cascadia Mono',monospace; color:var(--txt); white-space:pre-wrap; }
   .hint { color:var(--mut); font-size:12px; margin-top:8px; }
   .card.ks { padding:14px 18px; }
   .ks-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(215px,1fr)); gap:8px 12px; margin-top:10px; font-size:13px; align-items:center; }
   .ks-item { display:flex; align-items:center; gap:8px; }
-  .ks-row .k { display:inline-flex; align-items:center; justify-content:center; min-width:26px; height:24px; padding:0 6px; border:1px solid var(--line); border-bottom-width:2px; border-radius:6px; background:var(--panel2); color:var(--acc); font-weight:700; font-family:Consolas,'Cascadia Mono',monospace; font-size:12px; }
+  .ks-row .k { display:inline-flex; align-items:center; justify-content:center; min-width:26px; height:24px; padding:0 6px; border:1px solid rgba(79,140,255,.28); border-bottom-width:2px; border-radius:6px; background:rgba(79,140,255,.08); color:var(--acc); font-weight:700; font-family:Consolas,'Cascadia Mono',monospace; font-size:12px; }
   /* Los atajos de teclado solo aportan en escritorio. */
   @media (max-width:1024px) { .card.ks { display:none; } }
   #spinner { display:none; width:16px; height:16px; border:2px solid var(--line); border-top-color:var(--warn); border-radius:50%; animation:spin .8s linear infinite; }
@@ -133,6 +139,27 @@
   .job-row .job-open { flex:1; color:var(--acc); text-decoration:none; word-break:break-all; min-width:0; }
   .job-row .job-open:hover { text-decoration:underline; }
   .job-row .job-meta { color:var(--mut); white-space:nowrap; font-size:12px; }
+  /* --- animaciones (estilo FFL) --- */
+  @keyframes hbr-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+  .animate-float { animation:hbr-float 5s ease-in-out infinite; }
+  @keyframes hbr-pulse-blue {
+    0%,100% { opacity:1; box-shadow:0 0 10px rgba(79,140,255,.4); }
+    50% { opacity:.82; box-shadow:0 0 24px rgba(79,140,255,.75); }
+  }
+  .pulse-glow-blue { animation:hbr-pulse-blue 2.4s ease-in-out infinite; }
+  @keyframes hbr-pulse-red {
+    0%,100% { opacity:1; box-shadow:0 0 10px rgba(255,90,90,.4); }
+    50% { opacity:.82; box-shadow:0 0 24px rgba(255,90,90,.7); }
+  }
+  .pulse-glow-red { animation:hbr-pulse-red 2.4s ease-in-out infinite; }
+  @keyframes hbr-gradient-shift { 0% { background-position:0% 50%; } 50% { background-position:100% 50%; } 100% { background-position:0% 50%; } }
+  .gradient-merge {
+    background:linear-gradient(135deg,#4f8cff,#7d6cff,#ff5a5a,#4f8cff);
+    background-size:300% 300%; animation:hbr-gradient-shift 7s ease infinite;
+    color:#fff; border:none; font-weight:700;
+    box-shadow:0 0 24px rgba(79,140,255,.28),0 0 46px rgba(255,90,90,.16);
+  }
+  .gradient-merge:hover:not(:disabled) { border:none; background:linear-gradient(135deg,#4f8cff,#7d6cff,#ff5a5a,#4f8cff); background-size:300% 300%; }
   /* --- responsive / móvil --- */
   @media (max-width:640px) {
     body { overflow-x:hidden; }
@@ -144,10 +171,10 @@
     .nav-menu-btn { display:inline-flex; }
     /* El resto de la navbar va en un desplegable (menú hamburguesa), deslizable si no cabe. */
     .nav-links { position:absolute; top:calc(100% + 4px); right:0; z-index:80; flex-direction:column;
-      align-items:stretch; gap:6px; width:max-content; background:var(--panel);
+      align-items:stretch; gap:6px; width:max-content; background:rgba(12,21,37,.94);
       border:1px solid var(--line); border-radius:10px; padding:8px; box-shadow:0 6px 20px rgba(0,0,0,.5);
       max-height:calc(100dvh - 70px); overflow-y:auto; flex-wrap:nowrap; display:none;
-      transform:translateX(calc(50% - 19px)); }
+      transform:translateX(calc(50% - 19px)); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
     header.nav.nav-open .nav-links { display:flex; }
     #navLastJob, #myJobsBtn, #langDD { display:inline-flex; }
     .nav-job span, #myJobsBtn span { display:none; }
@@ -173,6 +200,7 @@
 </script>
 </head>
 <body>
+<div class="ambient" aria-hidden="true"><div class="a-glow"></div><div class="a-blue"></div><div class="a-red"></div></div>
 <header class="nav">
   <div class="wrap">
     <a class="brand" href="./">
@@ -274,7 +302,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
       </button>
       <div class="spacer"></div>
-      <button class="btn primary" id="go" data-i18n="mergeBtn">Fusionar</button>
+      <button class="btn primary gradient-merge" id="go" data-i18n="mergeBtn">Fusionar</button>
     </div>
     <div class="callout" id="swapInfoBox" data-i18n="swapInfoText" hidden>Si la fusión falla o la rec resultante no se reproduce, prueba a intercambiar el orden de las grabaciones: a veces, empezar por la otra rec hace que el fusionador complete el proceso correctamente.</div>
   </div>
@@ -303,7 +331,7 @@
   <div class="wrap">
     <div class="foot-links">
       <a href="https://discord.gg/r4TFnVPEXw" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>Discord</a>
-      <a href="https://ffl-theta.vercel.app/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>FFL WEB</a>
+      <a href="https://futsalfusionleague.pages.dev/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>FFL WEB</a>
       <a href="https://www.youtube.com/@FFLHax" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>YouTube</a>
       <a href="https://www.twitch.tv/futsalfusionleaguehax" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>Twitch</a>
       <a href="https://kick.com/futsalfusionleaguehax" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M1.333 0h8v5.333H12V2.667h2.667V0h8v8H20v2.667h-2.667v2.666H20V16h2.667v8h-8v-2.667H12v-2.666H9.333V24h-8Z"/></svg>Kick</a>

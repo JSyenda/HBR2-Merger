@@ -13,13 +13,16 @@
   /* ---- CSS del merger: mismo layout que el reproductor oficial de HaxBall,
          re-tinteado con la paleta oscura del merger ---- */
   :root {
-    --bg:#0f1420; --panel:#1a2233; --panel2:#202a40; --line:#2c3a55;
+    --bg:#060b18; --panel:#0c1525; --panel2:#121f36; --line:#1c2e4a;
     --txt:#dbe4f4; --mut:#8ba0c0; --acc:#4f8cff; --ok:#2ecc71; --bad:#ff5a5a;
   }
   html, body { height:100%; overflow:hidden; }
-  body { background:#0b0e14; color:var(--txt);
+  body { background:var(--bg); color:var(--txt);
     font-family:"Open Sans",Segoe UI,Roboto,Arial,sans-serif; }
-  #container { height:100%; position:relative; z-index:0; }
+  body::before { content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:radial-gradient(circle at top, rgba(79,140,255,.22), transparent 60%),
+      radial-gradient(circle at bottom left, rgba(255,90,90,.10), transparent 45%); }
+  #container { height:100%; position:relative; z-index:1; }
   /* z-index:0 hace que #container sea contexto de apilamiento: el canvas del campo
      (z-index:-1 dentro de .game-state-view) queda DENTRO de ese contexto y se pinta
      por encima del fondo oscuro del body. Sin esto, el bitmap se dibuja pero queda

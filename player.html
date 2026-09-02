@@ -44,6 +44,11 @@
   .game-state-view .bar [data-hook=timer] { color:var(--mut); }
   .game-state-view .fps-limit-fix { display:none; }
 
+  /* FPS / ping: van sobre el campo (verde), así que se fuerzan en blanco con sombra
+     oscura para que se lean tanto en modo claro como en oscuro. */
+  .stats-view { color:#fff; }
+  .stats-view p { color:#fff; }
+
   /* --- botones superiores (sonido / menú / ajustes) --- */
   .game-view>.buttons { background:var(--nav); border-bottom-left-radius:5px;
     border-bottom:1px solid var(--line); border-left:1px solid var(--line); }
@@ -362,6 +367,26 @@
     if (!document.fullscreenEnabled && !document.webkitFullscreenEnabled && !document.msFullscreenEnabled) {
       fsBtn.style.display = 'none';
     }
+
+    // Botón: cambiar tema claro/oscuro (comparte hbr2.theme con la página principal).
+    var ICON_THEME_DARK = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+    var ICON_THEME_LIGHT = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
+    var themeBtn = document.createElement('button');
+    themeBtn.id = 'themeToggle';
+    themeBtn.type = 'button';
+    function setThemeIcon() {
+      var light = document.documentElement.classList.contains('theme-light');
+      themeBtn.title = T(light ? 'pThemeToLight' : 'pThemeToDark');
+      themeBtn.innerHTML = light ? ICON_THEME_LIGHT : ICON_THEME_DARK;
+    }
+    setThemeIcon();
+    themeBtn.addEventListener('click', function () {
+      var root = document.documentElement;
+      root.classList.toggle('theme-light');
+      try { localStorage.setItem('hbr2.theme', root.classList.contains('theme-light') ? 'light' : 'dark'); } catch (e) {}
+      setThemeIcon();
+    });
+    bar.appendChild(themeBtn);
 
     // Seek con arrastre en la barra de progreso (además del clic del motor).
     var tb = root.querySelector('.replay-controls-view [data-hook=timebar]');

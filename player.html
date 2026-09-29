@@ -195,7 +195,12 @@
   html.theme-light .game-view.chat-bg-full .bottom-section { background-color:rgba(255,255,255,.85); }
 </style>
 <script>
-  try { if (localStorage.getItem('hbr2.theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (e) {}
+  // Tema por defecto: oscuro (mismo valor y clave que la página principal).
+  try {
+    var th = localStorage.getItem('hbr2.theme');
+    if (th === 'light') document.documentElement.classList.add('theme-light');
+    else if (th !== 'dark') localStorage.setItem('hbr2.theme', 'dark');
+  } catch (e) {}
 </script>
 </head>
 <body>

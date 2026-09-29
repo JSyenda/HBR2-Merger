@@ -216,7 +216,13 @@
 </style>
 <script>
 (function () {
-  try { if (localStorage.getItem('hbr2.theme') !== 'dark') document.documentElement.classList.add('theme-light'); } catch (e) {}
+  // Tema por defecto: oscuro. Solo se aplica el claro si el usuario lo eligió antes.
+  // Si no hay preferencia guardada (primera visita) se persiste 'dark' explícitamente.
+  try {
+    var th = localStorage.getItem('hbr2.theme');
+    if (th === 'light') document.documentElement.classList.add('theme-light');
+    else if (th !== 'dark') localStorage.setItem('hbr2.theme', 'dark');
+  } catch (e) {}
 })();
 </script>
 </head>

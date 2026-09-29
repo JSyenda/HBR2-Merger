@@ -216,7 +216,7 @@
 </style>
 <script>
 (function () {
-  try { if (localStorage.getItem('hbr2.theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (e) {}
+  try { if (localStorage.getItem('hbr2.theme') !== 'dark') document.documentElement.classList.add('theme-light'); } catch (e) {}
 })();
 </script>
 </head>
@@ -267,7 +267,7 @@
 
 <main class="wrap">
   <div class="card intro" data-i18n="intro">
-    Une varias grabaciones de Haxball (<code>.hbr2</code>) en una sola, encadenadas de 2 en 2.<hr><b>Modo Estándar</b> <em>(recomendado)</em>: crea una rec normal que se puede ver en cualquier reproductor, incluido <b>haxball.com</b>.<br><b>Modo Exacto</b>: conserva la posición exacta de los jugadores al fusionar. Nota: es posible que solo se pueda ver con el reproductor de esta web.<hr><em>Orden: Rec inicial + Rec 2 + … + Rec final</em>.
+    Une varias grabaciones de Haxball (<code>.hbr2</code>) en una sola, encadenadas de 2 en 2.<hr><b>Modo Exacto</b> <em>(recomendado)</em>: conserva la posición exacta de los jugadores al fusionar. Nota: es posible que solo se pueda ver con el reproductor de esta web.<br><b>Modo Estándar</b>: crea una rec normal que se puede ver en cualquier reproductor, incluido <b>haxball.com</b>.<hr><em>Orden: Rec inicial + Rec 2 + … + Rec final</em>.
   </div>
 
   <div class="localnote" data-i18n="localnote">
@@ -331,10 +331,10 @@
   <div class="card">
     <div class="actions modes">
       <b data-i18n="modeLabel">Modo de fusión</b>
-      <label><input type="radio" name="mode" value="standard" checked> <span data-i18n="modeStd">Estándar (haxball.com)</span></label>
-      <label><input type="radio" name="mode" value="exact"> <span data-i18n="modeExact">Exacto (motor patcheado)</span></label>
+      <label><input type="radio" name="mode" value="standard"> <span data-i18n="modeStd">Estándar (haxball.com)</span></label>
+      <label><input type="radio" name="mode" value="exact" checked> <span data-i18n="modeExact">Exacto (motor patcheado)</span></label>
     </div>
-    <div class="hint" data-i18n="modeHint">En caso de que no funcione el <b>Modo Estándar</b>, prueba con el <b>Modo Exacto</b>. Ten en cuenta que puede llegar a fallar.</div>
+    <div class="hint" data-i18n="modeHint">El <b>Modo Exacto</b> es el recomendado: mantiene las posiciones exactas de los jugadores. Si necesitas que la rec se pueda ver en <b>haxball.com</b> o en otro reproductor, usa el <b>Modo Estándar</b>. Ten en cuenta que el Modo Exacto puede llegar a fallar.</div>
   </div>
 
   <div class="card">
@@ -597,7 +597,7 @@
 
   function currentMode() {
     var m = document.querySelector('input[name="mode"]:checked');
-    return m ? m.value : 'standard';
+    return m ? m.value : 'exact';
   }
 
   function runMerge(buf1, buf2, mode, trim1, trim2) {
@@ -927,7 +927,7 @@
     jobId = id;
     window.HBRDB.getJob(id).then(function (j) {
       if (!j) throw new Error(T('errNoJob'));
-      var modeEl = document.querySelector('input[name="mode"][value="' + (j.mode || 'standard') + '"]');
+      var modeEl = document.querySelector('input[name="mode"][value="' + (j.mode || 'exact') + '"]');
       if (modeEl) modeEl.checked = true;
       var ins = j.inputs;
       if (ins && ins.length) {

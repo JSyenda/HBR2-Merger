@@ -195,12 +195,14 @@
     // La clase Mb del motor patcheado está revertida al formato ORIGINAL (f32, sin campos
     // extra de jugador), así que el Mb emitido aquí también lo parsea haxball.com.
     let mbEmitted = 0;
+    function discEq(a, b) {
+      return a.a.x === b.a.x && a.a.y === b.a.y && a.G.x === b.G.x && a.G.y === b.G.y
+        && a.ra.x === b.ra.x && a.ra.y === b.ra.y && a.V === b.V && a.o === b.o
+        && a.ca === b.ca && a.Ea === b.Ea && a.S === b.S && a.i === b.i && a.C === b.C;
+    }
+    function discVals(d) { return [d.a.x, d.a.y, d.G.x, d.G.y, d.ra.x, d.ra.y, d.V, d.o, d.ca, d.Ea]; }
+    function discInts(d) { return [d.S, d.i, d.C]; }
     if (mode === 'exact' && S2.M) {
-      function discEq(a, b) {
-        return a.a.x === b.a.x && a.a.y === b.a.y && a.G.x === b.G.x && a.G.y === b.G.y
-          && a.ra.x === b.ra.x && a.ra.y === b.ra.y && a.V === b.V && a.o === b.o
-          && a.ca === b.ca && a.Ea === b.Ea && a.S === b.S && a.i === b.i && a.C === b.C;
-      }
       // Estado fresh de bb()+al(): cuerpo por jugador (null = spectator sin cuerpo).
       function freshBodies() {
         const U = S2.U;
@@ -239,8 +241,6 @@
       // radio 6.4 de la pelota) las perturbaría a f32 sin necesidad y cambiaría
       // la física desde el frame 1. El baseline de discos es UH[i].aq() y el de
       // jugadores el freshBodies() de abajo.
-      function discVals(d) { return [d.a.x, d.a.y, d.G.x, d.G.y, d.ra.x, d.ra.y, d.V, d.o, d.ca, d.Ea]; }
-      function discInts(d) { return [d.S, d.i, d.C]; }
       const discs = S2.M.va.H;
       const UH = S2.U.H;
       const nDisc = Math.min(UH.length, discs.length);
@@ -311,12 +311,119 @@
     const junctionBuf = concatBytes(junctionBytes);
     line('Bloque de junción: ' + junctionBuf.length + ' bytes, delta inicial ' + (dur1 - hg1));
 
+    // ---------- snaps periódicos (SOLO modo 'exact' con partido) ----------
+    // La junción deja el estado a precisión f32 y el caos amplifica cualquier
+    // micro-diferencia hasta divergencia macroscópica (~1000 frames): la 2ª mitad
+    // acabaría jugando OTRO partido. Para que persiga a file2 se re-sincronizan
+    // los cuerpos cada SNAP_K frames con Mb vanilla (f32 de la trayectoria de
+    // referencia de file2): el error queda acotado a nivel f32 (~1e-4, invisible)
+    // en toda la 2ª mitad. Compatible con haxball.com (Mb original).
+    // Orden en cada frame F: primero las acciones propias de file2, después los
+    // snaps (así los snaps fijan el estado post-acción de referencia).
+    const SNAP_K = 60;
+    let tailBuf, snapCount = 0, snapRecs = 0;
+    if (mode === 'exact' && S2.M) {
+      // 1) acciones de file2 con frames absolutos (mismo patrón que trimReplay)
+      const f2recs = [];
+      {
+        const repE = makeRep(b2);
+        let prevAbs = 0;
+        while (repE.ug) {
+          const abs = repE.vg;
+          const act = repE.ug;
+          const delta = abs - prevAbs;
+          const ww = A.ka(256);
+          ww.pb(delta);
+          ww.Xb(act.P);
+          p.Cj(act, ww);
+          const rec = ww.Wb();
+          f2recs.push({ abs, rec, dlen: varintLen(delta) });
+          prevAbs = abs;
+          repE.dm();
+        }
+      }
+      // 2) sim de referencia: cuerpos (pelota + jugadores) cada SNAP_K frames.
+      // Solo índices 0..10 de discos (estadio+pelota, orden estable) y jugadores
+      // por Z (tn=true, independiente del orden): nunca se direcciona por índice
+      // un disco de jugador (su posición en va.H depende del orden de joins).
+      // Máscara selectiva igual que en la junción: la dinámica (a/G/ra) viaja
+      // siempre (es lo que deriva); las constantes materiales (V/o/ca/Ea) solo
+      // si difieren de las del estadio (restaurarlas a f32 perturbaría p. ej. el
+      // radio 6.4 exacto sin necesidad); S/i/C son ints exactos y viajan siempre
+      // (así los tintes visuales también se sincronizan).
+      const snaps = [];
+      {
+        const rf = makeRep(b2);
+        for (let F = SNAP_K; F <= dur2; F += SNAP_K) {
+          toF(rf, F);
+          const st = rf.T;
+          const discs = [];
+          if (st.M && st.M.va && st.M.va.H) {
+            const H = st.M.va.H;
+            const UH = st.U.H;
+            for (let i = 0; i < Math.min(11, H.length, UH.length); i++) {
+              const d = H[i], fr = UH[i].aq();
+              const fv = discVals(fr), fi = discInts(fr);
+              discs.push({ Ke: i, Na: discVals(d).map((v, j) => v === fv[j] ? null : v), Yc: discInts(d).map((v, j) => v === fi[j] ? null : v) });
+            }
+          }
+          const players = [];
+          const Kd = st.U.Kd;
+          for (const pl of st.K) {
+            if (!pl.I) continue;
+            const d = pl.I;
+            players.push({ Z: pl.Z,
+              Na: [d.a.x, d.a.y, d.G.x, d.G.y, d.ra.x, d.ra.y,
+                d.V === Kd.V ? null : d.V, d.o === Kd.o ? null : d.o,
+                d.ca === Kd.ca ? null : d.ca, d.Ea === Kd.Ea ? null : d.Ea],
+              Yc: [d.S, d.i, d.C] });
+          }
+          snaps.push({ F, discs, players });
+        }
+      }
+      // 3) intercalar con deltas recalculados desde frames absolutos
+      const tail = [];
+      let prevAbs = dur1;
+      function emitAbs(abs, body) {
+        tail.push(concatBytes([varintBytes(abs - prevAbs), body]));
+        prevAbs = abs;
+      }
+      function snapMb(Ke, tn, Na, Yc, mabs) {
+        const m = newAct(T.Mb); m.P = 0; m.Ke = Ke; m.tn = tn; m.Na = Na; m.Yc = Yc;
+        const ww = A.ka(128); ww.Xb(m.P); p.Cj(m, ww);
+        emitAbs(mabs, ww.Wb());
+      }
+      let si = 0;
+      for (const r of f2recs) {
+        const mabs = r.abs + dur1;
+        while (si < snaps.length && dur1 + snaps[si].F < mabs) {
+          const s = snaps[si], sm = dur1 + s.F;
+          for (const sd of s.discs) snapMb(sd.Ke, false, sd.Na, sd.Yc, sm);
+          for (const sp of s.players) snapMb(sp.Z, true, sp.Na, sp.Yc, sm);
+          si++;
+        }
+        emitAbs(mabs, r.rec.subarray(r.dlen));
+      }
+      while (si < snaps.length) {
+        const s = snaps[si], sm = dur1 + s.F;
+        for (const sd of s.discs) snapMb(sd.Ke, false, sd.Na, sd.Yc, sm);
+        for (const sp of s.players) snapMb(sp.Z, true, sp.Na, sp.Yc, sm);
+        si++;
+      }
+      snapCount = snaps.length;
+      snapRecs = tail.length - f2recs.length;
+      tailBuf = concatBytes(tail);
+      line('Snaps: ' + snapCount + ' cada ' + SNAP_K + ' frames (' + snapRecs + ' records Mb)');
+    } else {
+      tailBuf = dec2.subarray(first_action2_abs);
+    }
+
     // ---------- ensamblar ----------
     const merged_dec = concatBytes([
       buildWom(wom1.entries, wom2.entries, dur1),
       dec1.subarray(wom1.end),
       junctionBuf,
-      dec2.subarray(first_action2_abs),
+      tailBuf,
     ]);
     const merged_dur = dur1 + dur2;
     const compressed = pako.deflateRaw(merged_dec);
@@ -347,15 +454,20 @@
     frep.hi = mrep.hi;           // alinear hi: ambos replays ven exactamente la misma secuencia de b
     _now = mrep.hi;
     // La verificación depende del modo:
-    //   'exact'    -> gate en dos niveles. Mb guarda los cuerpos en f32 (formato
-    //                 original; el snapshot es f64), así que la paridad byte-exacta
-    //                 total solo es exigible en la ventana temprana (k<=50): si la
-    //                 junción es correcta, todo cuadra al principio. Más allá, el
-    //                 ruido f32 + caos amplifica cualquier micro-diferencia aunque el
-    //                 merged sea fiel, de modo que pelota/marcador dejan de exigirse
-    //                 y se pasa a columna vertebral discreta (M, ajustes, roster y
-    //                 equipos K) más prueba de restauración en frame 1 (cuerpos a
-    //                 tolerancia f32 e inputs W iguales: demuestra Mb+Ja).
+    //   'exact'    -> con snaps periódicos la 2ª mitad persigue a file2 con error
+    //                 acotado a nivel f32 en TODA su duración: el gate exige
+    //                 - ventana temprana (k<=50): paridad byte-exacta completa
+    //                   salvo x/y de pelota a tolerancia f32 (prueba la junción);
+    //                 - resto: columna discreta exacta (M, ajustes, roster/equipos
+    //                   K) + tracking de pelota (prueba los snaps). El marcador NO
+    //                   se exige fuera de la ventana temprana (un flip de umbral
+    //                   puede desincronizar un gol/out sin que la trayectoria deje
+    //                   de ser fiel: los contadores no se autocuran con snaps).
+    //                   Los blips transitorios de pelota (flip que el siguiente
+    //                   snap corrige) se toleran UNA vez; solo fallan si persisten
+    //                   en 2+ muestras consecutivas (rotura real: congelado, etc).
+    //                 - frame 1: cuerpos a tolerancia f32 e inputs W iguales
+    //                   (prueba Mb+Ja de la junción).
     //   'standard' -> gate ESTRUCTURAL: no puede exigir posiciones de cuerpos (sin Mb la
     //                 junción deja los cuerpos en el estado fresh de bb()+al(), que no es
     //                 S2 si file2 arranca en mitad de juego). Verifica que la estructura
@@ -370,33 +482,42 @@
     const EARLY_EXACT = 50;   // ventana temprana con paridad byte-exacta completa
     const BODY_TOL = 1e-3;    // tolerancia f32 para cuerpos en frame 1 (half-ulp << esto)
     const BALL_TOL = 1e-3;    // tolerancia f32 para x/y de la pelota en ventana temprana
+    const TRACK_TOL = 5e-3;   // tolerancia de tracking con snaps (medido: picos ~5e-4)
     // La pelota viaja como string "x,y,V,o,ca,Ea,S,i,C": todo exacto SALVO x/y,
     // que Mb restaura en f32 (la posición sí debe restaurarse; el resto de campos
     // son constantes del estadio y Mb selectivo los deja exactos).
-    function ballTol(a, b) {
+    function ballTol(a, b, tol) {
       if (a.ball === 'null' || b.ball === 'null') return a.ball === b.ball;
       const pa = a.ball.split(','), pb = b.ball.split(',');
       for (let i = 2; i < pa.length; i++) if (pa[i] !== pb[i]) return false;
-      return Math.abs(+pa[0] - +pb[0]) <= BALL_TOL && Math.abs(+pa[1] - +pb[1]) <= BALL_TOL;
+      return Math.abs(+pa[0] - +pb[0]) <= tol && Math.abs(+pa[1] - +pb[1]) <= tol;
     }
     let fails = 0;
+    let prevTrackBad = false; // blip anterior pendiente de confirmar
     function cmpAt(k) {
       const a = snap(mrep.T), b = snap(frep.T);
       // En modo standard solo se puede exigir lo que la junción controla directamente
       // (M presente, ajustes mb/Ga/Bc, roster+equipos K). El marcador y los tiempos
       // (Cb/Ta/Ob/Tb) divergen legítimamente sin Mb (los cuerpos de la 2ª parte arrancan
       // en formación fresh, no en S2 exacto), así que NO se comparan en este modo.
-      // En modo exact, ventana temprana byte-exacta completa; después, columna
-      // vertebral discreta (la pelota/marcador divergen por ruido f32 + caos).
+      // En modo exact, ventana temprana byte-exacta (pelota a tolerancia f32);
+      // después, columna discreta + tracking de pelota (los snaps la acotan).
       let fin;
       if (structural) {
         fin = a.M === b.M && a.Bc === b.Bc && a.mb === b.mb && a.Ga === b.Ga && a.K === b.K
           && (k <= 10 || (a.M === 'y' && b.M === 'y'));
       } else if (k <= EARLY_EXACT) {
         fin = a.M === b.M && a.Cb === b.Cb && a.Bc === b.Bc && a.mb === b.mb && a.Ga === b.Ga
-          && a.K === b.K && a.Ta === b.Ta && a.Ob === b.Ob && a.Tb === b.Tb && ballTol(a, b);
+          && a.K === b.K && a.Ta === b.Ta && a.Ob === b.Ob && a.Tb === b.Tb && ballTol(a, b, BALL_TOL);
       } else {
-        fin = a.M === b.M && a.Bc === b.Bc && a.mb === b.mb && a.Ga === b.Ga && a.K === b.K;
+        const backbone = a.M === b.M && a.Bc === b.Bc && a.mb === b.mb && a.Ga === b.Ga && a.K === b.K;
+        if (!backbone) {
+          prevTrackBad = false;
+          fin = false;
+        } else if (!ballTol(a, b, TRACK_TOL)) {
+          if (prevTrackBad) { fin = false; prevTrackBad = false; } // persiste: rotura real
+          else { fin = true; prevTrackBad = true; line('  (aviso) pelota fuera de tracking en frame ' + k + ' (blip transitorio, se confirma en la siguiente muestra)'); }
+        } else { fin = true; prevTrackBad = false; }
       }
       if (!fin) { fails++; line('  MISMATCH frame ' + k + ' (merged ' + (dur1 + k) + ')'); line('    merged: ' + JSON.stringify(a)); line('    file2 : ' + JSON.stringify(b)); }
       // Prueba de restauración (solo exact, frame 1): los cuerpos deben arrancar a
@@ -450,7 +571,7 @@
 
     const verifyOk = fails === 0;
     line('Verificación: ' + (verifyOk
-      ? (structural ? 'SUPERADA (estructural + física viva; ' + frames.size + ' frames muestreados)' : 'SUPERADA (exacta temprana + restauración f32 Mb/Ja + estructural; ' + frames.size + ' frames muestreados; mbEmitted=' + mbEmitted + ')')
+      ? (structural ? 'SUPERADA (estructural + física viva; ' + frames.size + ' frames muestreados)' : 'SUPERADA (trayectoria fiel + estructural; ' + frames.size + ' frames muestreados; mbEmitted=' + mbEmitted + ', snaps=' + snapCount + ')')
       : 'FALLIDA (' + fails + ')'));
 
     return {
